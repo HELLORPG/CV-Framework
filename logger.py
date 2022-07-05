@@ -23,7 +23,13 @@ class Logger:
         os.makedirs(self.logdir, exist_ok=True)
         return
 
-    def log_dict(self, log: dict, filename: str, mode: str = "w"):
+    @classmethod
+    def log(cls, log, prompt: str = ""):
+        print("%s%s" % (prompt, log))
+        return
+
+
+    def log_dict_to_file(self, log: dict, filename: str, mode: str = "w"):
         """
         Log a dict data.
 
@@ -37,18 +43,22 @@ class Logger:
             f.write("\n")
         return
 
-    def log_options(self, log: argparse.ArgumentParser, filename: str):
-        """
-        Log runtime options.
 
-        Args:
-            log: Runtime options.
-            filename: Log file's name.
-        """
-        with open(os.path.join(self.logdir, filename), mode="w") as f:
-            for k, v in vars(log).items():
-                f.write("%s: %s\n" % (k, v))
-        return
+def parser_to_dict(log: argparse.ArgumentParser) -> dict:
+    """
+    Transform options to a dict.
+
+    Args:
+        log: The options.
+
+    Returns:
+        Options dict.
+    """
+    opts_dict = dict()
+    for k, v in vars(log).items():
+        if v:
+            opts_dict[k] = v
+    return opts_dict
 
 
 

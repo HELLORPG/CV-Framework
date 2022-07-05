@@ -3,10 +3,10 @@
 # @Description  : Main Function.
 
 
-import yaml
 import argparse
 
 from utils import yaml_to_dict
+from logger import Logger, parser_to_dict
 
 
 def parse_options():
@@ -21,19 +21,56 @@ def parse_options():
     """
     parser = argparse.ArgumentParser("Network training and evaluation script.", add_help=False)
 
+    # Running mode, Training? Evaluation? or ?
+    parser.add_argument("--mode", type=str, help="Running mode.")
+
     # Config file.
-    parser.add_argument("--config-path", type=str, help="Config file path.")
+    parser.add_argument("--config-path", type=str, help="Config file path.",
+                        default="./configs/resnet18_mnist.yaml")
 
     # About system.
-    parser.add_argument("--device", type=str, default="cuda", help="Device.")
+    parser.add_argument("--device", type=str, help="Device.",
+                        default="cuda")
 
     # About data.
     parser.add_argument("--data-path", type=str, help="Data path.")
 
+    # About evaluation.
+    parser.add_argument("--eval-model", type=str, help="Eval model path.")
+
+    # About outputs.
+    parser.add_argument("--outputs-dir", type=str, help="Outputs dir.",
+                        default="./outputs/")
+
     return parser.parse_args()
 
 
+def main(options, configs):
+    """
+    Main function.
+
+    Args:
+        options: Runtime options.
+        configs: Model configs.
+    """
+    logger = Logger(logdir=options.outputs_dir)
+
+    # Logging options and configs.
+    logger.log(log=configs, prompt="Model configs: ")
+    logger.log(log=parser_to_dict(options), prompt="Runtime options: ")
+    logger.log_dict_to_file(log=parser_to_dict(options), filename="options.json")
+    logger.log_dict_to_file(log=configs, filename="configs.json")
+
+    if options.mode == "train":
+        pass
+    elif options.mode == "eval":
+        pass
+    return
+
+
 if __name__ == '__main__':
-    options = parse_options()                       # runtime options
-    configs = yaml_to_dict(options.config_path)     # configs
+    opts = parse_options()                  # runtime options
+    cfgs = yaml_to_dict(opts.config_path)   # configs
+
+    main(opts, cfgs)
 
