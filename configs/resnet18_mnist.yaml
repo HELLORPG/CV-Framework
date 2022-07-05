@@ -5,11 +5,11 @@
 # RULES:
 # The name of the key should be unique.
 
-MODE: # "train" or "eval"
+MODE: # "train" or "eval", for the main.py script.
 DEVICE: cuda
 
 DATA:
-  DATA_PATH:
+  DATA_PATH: ./datasets/
   CLASS_NUM: 10
 
 MODEL:
