@@ -7,6 +7,7 @@ import argparse
 
 from utils import yaml_to_dict
 from logger import Logger, parser_to_dict
+from models.build import build_model
 
 
 def parse_option():
@@ -60,6 +61,9 @@ def main(config, option):
     logger.log(log=parser_to_dict(option), prompt="Runtime options: ")
     logger.log_dict_to_file(log=parser_to_dict(option), filename="options.json")
     logger.log_dict_to_file(log=config, filename="configs.json")
+
+    # Build model
+    model = build_model(config=config)
 
     if option.mode == "train":
         pass

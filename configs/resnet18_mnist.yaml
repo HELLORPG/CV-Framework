@@ -4,5 +4,7 @@
 
 
 MODEL:
-  PRETRAINED: False
+  PRETRAINED: None
+
+DATA:
   CLASS_NUM: 10

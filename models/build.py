@@ -6,5 +6,5 @@ from .resnet18 import ResNet18
 
 
 def build_model(config: dict):
+    return ResNet18(config=config)
 
-    pass
