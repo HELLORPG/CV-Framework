@@ -2,9 +2,24 @@
 # @Date         : 2022/7/5
 # @Description  : Config for ResNet18 and MNIST.
 
+# RULES:
+# The name of the key should be unique.
 
-MODEL:
-  PRETRAINED: None
+MODE: # "train" or "eval"
+DEVICE: cuda
 
 DATA:
+  DATA_PATH:
   CLASS_NUM: 10
+
+MODEL:
+  PRETRAINED:
+
+TRAIN:
+
+EVAL:
+  EVAL_MODEL:
+
+OUTPUTS:
+  OUTPUTS_DIR: ./outputs/
+

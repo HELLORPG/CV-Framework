@@ -8,13 +8,14 @@ import argparse
 from utils import yaml_to_dict
 from logger import Logger, parser_to_dict
 from models.build import build_model
+from configs.config import update_config
 
 
 def parse_option():
     """
     Build a parser that can set up runtime options, such as choose device, data path, and so on.
-    The hyperparameters which would influence the results should be included in config file, such as epochs, lr,
-    and so on.
+    Every option in this parser should appear in .yaml config file (like ./configs/resnet18_mnist.yaml),
+    except --config-path.
 
     Returns:
         A parser.
@@ -61,6 +62,7 @@ def main(config, option):
     logger.log(log=parser_to_dict(option), prompt="Runtime options: ")
     logger.log_dict_to_file(log=parser_to_dict(option), filename="options.json")
     logger.log_dict_to_file(log=config, filename="configs.json")
+    logger.log(log=update_config(config=config, option=option), prompt="New config: ")
 
     # Build model
     model = build_model(config=config)

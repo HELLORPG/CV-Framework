@@ -12,7 +12,7 @@ class ResNet18(nn.Module):
     def __init__(self, config):
         super(ResNet18, self).__init__()
 
-        if config["MODEL"]["PRETRAINED"] == "None":
+        if config["MODEL"]["PRETRAINED"] is None:
             self.model = torchvision.models.resnet18(weights=None)
         else:
             raise RuntimeError("Unsupported pretrained '%s'." % config["MODEL"]["PRETRAINED"])
