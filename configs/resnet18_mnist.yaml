@@ -1,0 +1,8 @@
+# @Author       : Ruopeng Gao
+# @Date         : 2022/7/5
+# @Description  : Config for ResNet18 and MNIST.
+
+
+MODEL:
+  PRETRAINED: False
+  CLASS_NUM: 10
