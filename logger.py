@@ -5,6 +5,7 @@
 
 import os
 import json
+import argparse
 
 
 class Logger:
@@ -22,18 +23,31 @@ class Logger:
         os.makedirs(self.logdir, exist_ok=True)
         return
 
-    def log_dict(self, log: dict, filename: str, mode: str = "w+"):
+    def log_dict(self, log: dict, filename: str, mode: str = "w"):
         """
         Log a dict data.
 
         Args:
             log (dict): A dict log.
             filename (str): Log file's name.
-            mode (str): File writing mode, "w+" or "a+".
+            mode (str): File writing mode, "w" or "a".
         """
         with open(os.path.join(self.logdir, filename), mode=mode) as f:
             f.write(json.dumps(log, indent=4))
             f.write("\n")
+        return
+
+    def log_options(self, log: argparse.ArgumentParser, filename: str):
+        """
+        Log runtime options.
+
+        Args:
+            log: Runtime options.
+            filename: Log file's name.
+        """
+        with open(os.path.join(self.logdir, filename), mode="w") as f:
+            for k, v in vars(log).items():
+                f.write("%s: %s\n" % (k, v))
         return
 
 
