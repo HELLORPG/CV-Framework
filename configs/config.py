@@ -56,7 +56,7 @@ def update_config(config: dict, option: argparse.ArgumentParser) -> dict:
 
 def is_unique(config: dict, keys_set: set = None) -> [bool, set]:
     """
-    Check whether the key in config is unique.
+    Check whether the keys in config are unique.
 
     Args:
         config: Config dict.
