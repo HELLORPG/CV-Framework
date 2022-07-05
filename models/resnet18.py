@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 class ResNet18(nn.Module):
-    def __init__(self):
+    def __init__(self, configs):
         super(ResNet18, self).__init__()
 
         self.model = torchvision.models.resnet18(pretrained=False)

@@ -9,7 +9,7 @@ from utils import yaml_to_dict
 from logger import Logger, parser_to_dict
 
 
-def parse_options():
+def parse_option():
     """
     Build a parser that can set up runtime options, such as choose device, data path, and so on.
     The hyperparameters which would influence the results should be included in config file, such as epochs, lr,
@@ -45,32 +45,32 @@ def parse_options():
     return parser.parse_args()
 
 
-def main(options, configs):
+def main(config, option):
     """
     Main function.
 
     Args:
-        options: Runtime options.
-        configs: Model configs.
+        config: Model configs.
+        option: Runtime options.
     """
-    logger = Logger(logdir=options.outputs_dir)
+    logger = Logger(logdir=option.outputs_dir)
 
     # Logging options and configs.
-    logger.log(log=configs, prompt="Model configs: ")
-    logger.log(log=parser_to_dict(options), prompt="Runtime options: ")
-    logger.log_dict_to_file(log=parser_to_dict(options), filename="options.json")
-    logger.log_dict_to_file(log=configs, filename="configs.json")
+    logger.log(log=config, prompt="Model configs: ")
+    logger.log(log=parser_to_dict(option), prompt="Runtime options: ")
+    logger.log_dict_to_file(log=parser_to_dict(option), filename="options.json")
+    logger.log_dict_to_file(log=config, filename="configs.json")
 
-    if options.mode == "train":
+    if option.mode == "train":
         pass
-    elif options.mode == "eval":
+    elif option.mode == "eval":
         pass
     return
 
 
 if __name__ == '__main__':
-    opts = parse_options()                  # runtime options
-    cfgs = yaml_to_dict(opts.config_path)   # configs
+    opt = parse_option()                  # runtime options
+    cfg = yaml_to_dict(opt.config_path)   # configs
 
-    main(opts, cfgs)
+    main(cfg, opt)
 
