@@ -55,14 +55,14 @@ def main(config, option):
         config: Model configs.
         option: Runtime options.
     """
+    # Merge parser option and .yaml config.
+    config = update_config(config, option)
+
     logger = Logger(logdir=option.outputs_dir)
 
     # Logging options and configs.
-    logger.log(log=config, prompt="Model configs: ")
-    logger.log(log=parser_to_dict(option), prompt="Runtime options: ")
-    logger.log_dict_to_file(log=parser_to_dict(option), filename="options.json")
-    logger.log_dict_to_file(log=config, filename="configs.json")
-    logger.log(log=update_config(config=config, option=option), prompt="New config: ")
+    logger.show(log=config, prompt="Model configs: ")
+    logger.write(config, "config.yaml")
 
     # Build model
     model = build_model(config=config)

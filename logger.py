@@ -6,6 +6,7 @@
 import os
 import json
 import argparse
+import yaml
 
 
 class Logger:
@@ -24,14 +25,45 @@ class Logger:
         return
 
     @classmethod
-    def log(cls, log, prompt: str = ""):
+    def show(cls, log, prompt: str = ""):
         print("%s%s" % (prompt, log))
         return
 
-
-    def log_dict_to_file(self, log: dict, filename: str, mode: str = "w"):
+    def write(self, log, filename: str, mode: str = "w"):
         """
-        Log a dict data.
+        Logger write a log to a file.
+
+        Args:
+            log: A log.
+            filename: Write file name.
+            mode: Open file with this mode.
+        """
+        if isinstance(log, dict):
+            if len(filename) > 5 and filename[-5:] == ".yaml":
+                self.write_dict_to_yaml(log, filename, mode)
+            elif len(filename) > 5 and filename[-5:] == ".json":
+                self.write_dict_to_json(log, filename, mode)
+            else:
+                raise RuntimeError("Filename '%s' is not supported for dict log." % filename)
+        else:
+            raise RuntimeError("Log type '%s' is not supported." % type(log))
+
+    def write_dict_to_yaml(self, log: dict, filename: str, mode: str = "w"):
+        """
+        Logger writes a dict log to a .yaml file.
+
+        Args:
+            log: A dict log.
+            filename: A yaml file's name.
+            mode: Open with this mode.
+        """
+        with open(os.path.join(self.logdir, filename), mode=mode) as f:
+            yaml.dump(log, f, allow_unicode=True)
+        return
+
+    def write_dict_to_json(self, log: dict, filename: str, mode: str = "w"):
+        """
+        Logger writes a dict log to a .json file.
 
         Args:
             log (dict): A dict log.
