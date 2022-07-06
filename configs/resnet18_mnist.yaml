@@ -9,6 +9,7 @@ MODE: # "train" or "eval", for the main.py script.
 DEVICE: cuda
 
 DATA:
+  DATASET: MNIST
   DATA_PATH: ./datasets/
   CLASS_NUM: 10
 
@@ -16,6 +17,7 @@ MODEL:
   PRETRAINED:
 
 TRAIN:
+  LR:
 
 EVAL:
   EVAL_MODEL:

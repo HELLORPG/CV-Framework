@@ -7,8 +7,8 @@ import argparse
 
 from utils import yaml_to_dict
 from logger import Logger, parser_to_dict
-from models.build import build_model
 from configs.config import update_config
+from engine import train
 
 
 def parse_option():
@@ -61,14 +61,11 @@ def main(config, option):
     logger = Logger(logdir=option.outputs_dir)
 
     # Logging options and configs.
-    logger.show(log=config, prompt="Model configs: ")
+    logger.show(log=config, prompt="Main configs: ")
     logger.write(config, "config.yaml")
 
-    # Build model
-    model = build_model(config=config)
-
     if option.mode == "train":
-        pass
+        train(config=config)
     elif option.mode == "eval":
         pass
     return
