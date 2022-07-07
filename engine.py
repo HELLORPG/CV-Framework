@@ -4,6 +4,7 @@
 import torch
 import torch.nn as nn
 
+from torch.utils.data import DataLoader
 from models.build import build_model
 
 
@@ -23,10 +24,11 @@ def train(config: dict):
     print("Here")
 
 
-def train_one_epoch(model: nn.Module, config: dict, epoch: int):
+def train_one_epoch(model: nn.Module, dataloader: DataLoader, config: dict, epoch: int):
     """
     Args:
         model: Model.
+        dataloader: Training dataloader.
         config: Main config.
         epoch: Current epoch.
 
