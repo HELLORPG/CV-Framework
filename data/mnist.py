@@ -5,6 +5,7 @@ import gzip
 import os
 
 import numpy as np
+from torch.utils.data import Dataset, DataLoader
 
 
 class MNIST:
@@ -54,8 +55,36 @@ class MNIST:
         return images, labels
 
 
+class MNISTDataset(Dataset):
+    """
+    A Dataset class for MNIST dataset.
+    """
+    def __init__(self, root: str, split: str, transforms=None):
+        """
+        Init a MNIST dataset class.
+
+        Args:
+            root: Data path root.
+            split: 'train' or 'test'.
+            transforms: How to transform data.
+        """
+        super(MNISTDataset, self).__init__()
+
+        mnist = MNIST(root=root)
+        self.images, self.labels = mnist.get_split(split=split)
+        self.transforms = transforms
+
+        return
+
+    def __getitem__(self, item):
+        image, label = self.images[item], self.labels[item]
+        if self.transforms is not None:
+            image = self.transforms(image)
+        return image, label
+
+    def __len__(self):
+        return len(self.labels)
+
+
 if __name__ == '__main__':
-    mnist = MNIST(root="../dataset/MNIST")
-    train_images, train_labels = mnist.get_split("train")
-    print(train_images.shape, train_labels.shape)
-    print(type(train_images), type(train_labels))
+    pass
