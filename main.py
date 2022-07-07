@@ -21,7 +21,7 @@ def parse_option():
         A parser.
 
     """
-    parser = argparse.ArgumentParser("Network training and evaluation script.", add_help=False)
+    parser = argparse.ArgumentParser("Network training and evaluation script.", add_help=True)
 
     # Running mode, Training? Evaluation? or ?
     parser.add_argument("--mode", type=str, help="Running mode.")
