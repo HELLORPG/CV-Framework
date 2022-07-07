@@ -31,7 +31,7 @@ def update_config_with_kv(config: dict, k: str, v) -> [bool, dict]:
     return hit, config
 
 
-def update_config(config: dict, option: argparse.ArgumentParser) -> dict:
+def update_config(config: dict, option: argparse.Namespace) -> dict:
     """
     Update current config with an option parser.
 
