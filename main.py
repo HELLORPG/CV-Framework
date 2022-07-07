@@ -31,8 +31,7 @@ def parse_option():
                         default="./configs/resnet18_mnist.yaml")
 
     # About system.
-    parser.add_argument("--device", type=str, help="Device.",
-                        default="cuda")
+    parser.add_argument("--device", type=str, help="Device.")
 
     # About data.
     parser.add_argument("--data-path", type=str, help="Data path.")
@@ -41,32 +40,29 @@ def parse_option():
     parser.add_argument("--eval-model", type=str, help="Eval model path.")
 
     # About outputs.
-    parser.add_argument("--outputs-dir", type=str, help="Outputs dir.",
-                        default="./outputs/")
+    parser.add_argument("--outputs-dir", type=str, help="Outputs dir.")
 
     return parser.parse_args()
 
 
-def main(config, option):
+def main(config: dict):
     """
     Main function.
 
     Args:
         config: Model configs.
-        option: Runtime options.
     """
-    # Merge parser option and .yaml config.
-    config = update_config(config, option)
 
-    logger = Logger(logdir=option.outputs_dir)
+    print(config["OUTPUTS"]["OUTPUTS_DIR"])
+    logger = Logger(logdir=config["OUTPUTS"]["OUTPUTS_DIR"])
 
     # Logging options and configs.
     logger.show(log=config, prompt="Main configs: ")
     logger.write(config, "config.yaml")
 
-    if option.mode == "train":
+    if config["MODE"] == "train":
         train(config=config)
-    elif option.mode == "eval":
+    elif config["MODE"] == "eval":
         pass
     return
 
@@ -75,5 +71,6 @@ if __name__ == '__main__':
     opt = parse_option()                  # runtime options
     cfg = yaml_to_dict(opt.config_path)   # configs
 
-    main(cfg, opt)
+    # Merge parser option and .yaml config, then run main function.
+    main(config=update_config(config=cfg, option=opt))
 
