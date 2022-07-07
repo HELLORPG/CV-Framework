@@ -109,4 +109,6 @@ class MNISTDataset(Dataset):
 
 
 if __name__ == '__main__':
+    import torch.backends.mps
+    print(torch.backends.mps.is_built())
     pass
