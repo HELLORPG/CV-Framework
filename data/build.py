@@ -4,7 +4,7 @@
 #                 I think it is elegant to provide a unified method for different datasets in this file.
 import torch
 from torch.utils.data import DataLoader
-from mnist import build_mnist_dataloader
+from .mnist import build_mnist_dataloader
 
 
 def build_dataloader(dataset: str, root: str, split: str, bs: int) -> DataLoader:
