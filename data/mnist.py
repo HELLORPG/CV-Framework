@@ -6,6 +6,28 @@ import os
 
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+
+
+def build_mnist_dataloader(root: str, split: str, bs: int) -> DataLoader:
+    """
+    Build a DataLoader for MNIST data.
+
+    Args:
+        root: Data root path.
+        split: Data split.
+        bs: Batch size.
+
+    Returns:
+        A DataLoader.
+    """
+    mnist_dataset = MNISTDataset(root=root, split=split, transforms=transforms.ToTensor())
+
+    return DataLoader(
+        dataset=mnist_dataset,
+        batch_size=bs,
+        shuffle=True if split == "train" else False
+    )
 
 
 class MNIST:
@@ -43,14 +65,14 @@ class MNIST:
                 labels_file.read(),
                 np.uint8,
                 offset=8
-            )
+            ).copy()
 
         with gzip.open(path + "images-idx3-ubyte.gz", "rb") as images_file:
             images = np.frombuffer(
                 images_file.read(),
                 np.uint8,
                 offset=16
-            ).reshape((len(labels), 28, 28))
+            ).reshape((len(labels), 28, 28)).copy()
 
         return images, labels
 

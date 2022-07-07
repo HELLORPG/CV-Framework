@@ -18,6 +18,7 @@ MODEL:
 
 TRAIN:
   LR:
+  BATCH_SIZE: 8
 
 EVAL:
   EVAL_MODEL:
