@@ -1,11 +1,12 @@
 # @Author       : Ruopeng Gao
 # @Date         : 2022/7/5
 # @Description  : Train and Evaluation functions, mainly used in main.py.
+import os
 import torch
 import torch.nn as nn
 
 from torch.utils.data import DataLoader
-from models.build import build_model
+from models.utils import build_model, save_checkpoint, load_checkpoint
 from data.build import build_dataloader
 from utils import labels_to_one_hot
 from torch.optim import Adam
@@ -42,27 +43,32 @@ def train(config: dict, logger: Logger):
     optimizer = Adam(params=model.parameters(), lr=config["TRAIN"]["LR"])
 
     for epoch in range(0, config["TRAIN"]["EPOCHS"]):
-        train_log = train_one_epoch(model=model, dataloader=train_dataloader, loss_function=loss_function,
+        train_log = train_one_epoch(config=config, model=model,
+                                    dataloader=train_dataloader, loss_function=loss_function,
                                     optimizer=optimizer,
-                                    config=config,
                                     epoch=epoch)
-        test_log = evaluate_one_epoch(model=model, dataloader=test_dataloader, loss_function=loss_function,
-                                      config=config)
+        test_log = evaluate_one_epoch(config=config, model=model,
+                                      dataloader=test_dataloader, loss_function=loss_function)
         log = MetricLog.concat(metrics=[train_log, test_log])
         logger.show(log, "")
+        save_checkpoint(config, model=model,
+                        path=os.path.join(config["OUTPUTS"]["OUTPUTS_DIR"], "checkpoint_%d.pth" % epoch),
+                        optimizer=optimizer,
+                        )
 
     # print("Here")
 
 
-def train_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, optimizer: torch.optim,
-                    config: dict, epoch: int):
+def train_one_epoch(config: dict, model: nn.Module,
+                    dataloader: DataLoader, loss_function: nn.Module, optimizer: torch.optim,
+                    epoch: int):
     """
     Args:
+        config: Main config.
         model: Model.
         dataloader: Training dataloader.
         loss_function: Loss function.
         optimizer: Training optimizer.
-        config: Main config.
         epoch: Current epoch.
 
     Returns:
@@ -111,19 +117,34 @@ def evaluate(config: dict, logger: Logger):
     Returns:
 
     """
-    pass
+    model = build_model(config=config)
+    model.to(device=torch.device(config["DEVICE"]))
+    load_checkpoint(config, model, path=config["EVAL"]["EVAL_MODEL"])
+
+    dataloader = build_dataloader(
+        dataset=config["DATA"]["DATASET"],
+        root=config["DATA"]["DATA_PATH"],
+        split="test",
+        bs=config["TRAIN"]["BATCH_SIZE"] * 2
+    )
+
+    loss_function = nn.CrossEntropyLoss()
+
+    log = evaluate_one_epoch(config=config, model=model, dataloader=dataloader, loss_function=loss_function)
+    logger.show(log)
+
+    return
 
 
 @torch.no_grad()
-def evaluate_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
-                       config: dict):
+def evaluate_one_epoch(config: dict, model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,):
     """
 
     Args:
+        config:
         model:
         dataloader:
         loss_function:
-        config:
 
     Returns:
 

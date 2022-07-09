@@ -8,7 +8,7 @@ import argparse
 from utils import yaml_to_dict
 from logger import Logger, parser_to_dict
 from configs.config import update_config
-from engine import train
+from engine import train, evaluate
 
 
 def parse_option():
@@ -63,7 +63,7 @@ def main(config: dict):
     if config["MODE"] == "train":
         train(config=config, logger=logger)
     elif config["MODE"] == "eval":
-        pass
+        evaluate(config=config, logger=logger)
     return
 
 

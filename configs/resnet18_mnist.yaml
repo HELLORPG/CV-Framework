@@ -22,7 +22,7 @@ TRAIN:
   EPOCHS: 20
 
 EVAL:
-  EVAL_MODEL:
+  EVAL_MODEL: ./outputs/checkpoint_1.pth
 
 OUTPUTS:
   OUTPUTS_DIR: ./outputs/
