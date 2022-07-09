@@ -72,8 +72,9 @@ def train_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.
     with tqdm(total=len(dataloader)) as t:
         for i, batch in enumerate(dataloader):
             images, labels = batch
-            outputs = model(images)
-            labels = torch.from_numpy(labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"]))
+            outputs = model(images.to(torch.device(config["DEVICE"])))
+            labels = torch.from_numpy(
+                labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(torch.device(config["DEVICE"]))
 
             loss = loss_function(outputs, labels)
 
@@ -117,8 +118,10 @@ def evaluate(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     with tqdm(total=len(dataloader)) as t:
         for i, batch in enumerate(dataloader):
             images, labels = batch
-            outputs = model(images)
-            labels = torch.from_numpy(labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"]))
+            outputs = model(images.to(torch.device(config["DEVICE"])))
+            labels = torch.from_numpy(
+                labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(torch.device(config["DEVICE"]))
+
             loss = loss_function(outputs, labels)
 
             metric_log.update("test_loss", loss.item(), count=len(labels))
