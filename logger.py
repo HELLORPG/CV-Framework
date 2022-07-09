@@ -1,12 +1,12 @@
 # @Author       : Ruopeng Gao
 # @Date         : 2022/7/5
 # @Description  : Logger will log information.
-
-
 import os
 import json
 import argparse
 import yaml
+
+from typing import List, Any
 
 
 class Logger:
@@ -86,7 +86,7 @@ class MetricLog:
         self.epoch = epoch
         self.metrics = dict()   # The metric value.
         self.counts = dict()     # The count.
-        self.mean_metrics = None
+        self.mean_metrics = dict()
 
     def update(self, metric_name: str, metric_value: float, count: int):
         """
@@ -109,6 +109,25 @@ class MetricLog:
         for k in self.metrics.keys():
             self.mean_metrics[k] = sum([i*j for i, j in zip(self.metrics[k], self.counts[k])]) / sum(self.counts[k])
         return
+
+    @classmethod
+    def concat(cls, metrics: List[Any]):
+        """
+
+        Args:
+            metrics:
+
+        Returns:
+            Concat result.
+        """
+        log = MetricLog()
+        for m in metrics:
+            if m.epoch is not None:
+                log.epoch = m.epoch
+            log.metrics.update(m.metrics)
+            log.counts.update(m.counts)
+            log.mean_metrics.update(m.mean_metrics)
+        return log
 
 
 class ProgressLog:

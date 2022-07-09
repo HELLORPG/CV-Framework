@@ -47,7 +47,8 @@ def train(config: dict):
                                     epoch=epoch)
         test_log = evaluate(model=model, dataloader=test_dataloader, loss_function=loss_function,
                             config=config)
-        print(train_log, test_log)
+        log = MetricLog.concat(metrics=[train_log, test_log])
+        print(log.mean_metrics)
 
     # print("Here")
 
