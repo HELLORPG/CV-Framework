@@ -20,6 +20,7 @@ TRAIN:
   LR: 0.0001
   BATCH_SIZE: 32
   EPOCHS: 20
+  RESUME:
 
 EVAL:
   EVAL_MODEL: ./outputs/checkpoint_1.pth

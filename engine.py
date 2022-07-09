@@ -42,6 +42,9 @@ def train(config: dict, logger: Logger):
     loss_function = nn.CrossEntropyLoss()
     optimizer = Adam(params=model.parameters(), lr=config["TRAIN"]["LR"])
 
+    if config["TRAIN"]["RESUME"] is not None:
+        load_checkpoint(config, model, path=config["TRAIN"]["RESUME"], optimizer=optimizer)
+
     for epoch in range(0, config["TRAIN"]["EPOCHS"]):
         train_log = train_one_epoch(config=config, model=model,
                                     dataloader=train_dataloader, loss_function=loss_function,
