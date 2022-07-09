@@ -9,16 +9,17 @@ from models.build import build_model
 from data.build import build_dataloader
 from utils import labels_to_one_hot
 from torch.optim import Adam
-from logger import MetricLog, ProgressLog
+from logger import MetricLog, Logger
 from tqdm import tqdm
 
 
-def train(config: dict):
+def train(config: dict, logger: Logger):
     """
     Train the model, using a config.
 
     Args:
         config: Mainly config.
+        logger: A logger.
     """
     model = build_model(config=config)
     model.to(device=torch.device(config["DEVICE"]))
@@ -45,10 +46,10 @@ def train(config: dict):
                                     optimizer=optimizer,
                                     config=config,
                                     epoch=epoch)
-        test_log = evaluate(model=model, dataloader=test_dataloader, loss_function=loss_function,
-                            config=config)
+        test_log = evaluate_one_epoch(model=model, dataloader=test_dataloader, loss_function=loss_function,
+                                      config=config)
         log = MetricLog.concat(metrics=[train_log, test_log])
-        print(log.mean_metrics)
+        logger.show(log, "")
 
     # print("Here")
 
@@ -99,9 +100,23 @@ def train_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.
     return metric_log
 
 
+def evaluate(config: dict, logger: Logger):
+    """
+    Evaluate a model.
+
+    Args:
+        config:
+        logger:
+
+    Returns:
+
+    """
+    pass
+
+
 @torch.no_grad()
-def evaluate(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
-             config: dict):
+def evaluate_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
+                       config: dict):
     """
 
     Args:

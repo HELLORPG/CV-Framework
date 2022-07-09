@@ -43,9 +43,17 @@ class MetricLog:
             self.mean_metrics[k] = sum([i*j for i, j in zip(self.metrics[k], self.counts[k])]) / sum(self.counts[k])
         return
 
+    def __str__(self):
+        s = str()
+        if self.epoch is not None:
+            s += "Epoch %d: " % self.epoch
+        s += self.mean_metrics.__str__()
+        return s
+
     @classmethod
     def concat(cls, metrics: List[Any]):
         """
+        Concat different metrics.
 
         Args:
             metrics:

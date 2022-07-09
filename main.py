@@ -61,7 +61,7 @@ def main(config: dict):
     logger.write(config, "config.yaml")
 
     if config["MODE"] == "train":
-        train(config=config)
+        train(config=config, logger=logger)
     elif config["MODE"] == "eval":
         pass
     return
