@@ -102,6 +102,7 @@ class MNISTDataset(Dataset):
         image, label = self.images[item], self.labels[item]
         if self.transforms is not None:
             image = self.transforms(image)
+        image = image.repeat((3, 1, 1))
         return image, label
 
     def __len__(self):
