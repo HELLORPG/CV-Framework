@@ -6,11 +6,11 @@
 # The name of the key should be unique.
 
 MODE: # "train" or "eval", for the main.py script.
-DEVICE: mps
+DEVICE: cpu
 
 DATA:
   DATASET: MNIST
-  DATA_PATH: ./datasets/
+  DATA_PATH: ./dataset/MNIST/
   CLASS_NUM: 10
 
 MODEL:
