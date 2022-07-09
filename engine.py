@@ -84,4 +84,4 @@ def train_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.
             # print("\r%s" % metric_log.mean_metrics)
             # print(i, "/", len(dataloader))
 
-    print("!")
+    # print("!")
