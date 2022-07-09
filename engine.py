@@ -9,6 +9,7 @@ from models.build import build_model
 from data.build import build_dataloader
 from utils import labels_to_one_hot
 from torch.optim import Adam
+from logger import MetricLog
 
 
 def train(config: dict):
@@ -54,18 +55,22 @@ def train_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.
         Logs
     """
     model.train()
+    metric_log = MetricLog(epoch=epoch)
 
     for images, labels in dataloader:
-        optimizer.zero_grad()
-
         outputs = model(images)
         labels = torch.from_numpy(labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"]))
 
         loss = loss_function(outputs, labels)
-        loss.backward()
 
+        optimizer.zero_grad()
+        loss.backward()
         optimizer.step()
 
-        print(loss.item())
+        metric_log.update("loss", loss.item(), count=len(labels))
+        metric_log.update("acc", sum(torch.argmax(labels, dim=1) == torch.argmax(outputs, dim=1)).item() / len(labels),
+                          len(labels))
+        metric_log.mean()
+        print(metric_log.mean_metrics)
 
     print("!")

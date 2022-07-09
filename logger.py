@@ -76,6 +76,41 @@ class Logger:
         return
 
 
+class MetricLog:
+    def __init__(self, epoch: int = None):
+        """
+
+        Args:
+            epoch: Current Epoch.
+        """
+        self.epoch = epoch
+        self.metrics = dict()   # The metric value.
+        self.counts = dict()     # The count.
+        self.mean_metrics = None
+
+    def update(self, metric_name: str, metric_value: float, count: int):
+        """
+
+        Args:
+            metric_name:
+            metric_value:
+            count:
+        """
+        if metric_name not in self.metrics.keys():
+            self.metrics[metric_name] = list()
+            self.counts[metric_name] = list()
+        assert isinstance(self.metrics[metric_name], list)
+        self.metrics[metric_name].append(metric_value)
+        self.counts[metric_name].append(count)
+        return
+
+    def mean(self):
+        self.mean_metrics = dict()
+        for k in self.metrics.keys():
+            self.mean_metrics[k] = sum([i*j for i, j in zip(self.metrics[k], self.counts[k])]) / sum(self.counts[k])
+        return
+
+
 def parser_to_dict(log: argparse.ArgumentParser) -> dict:
     """
     Transform options to a dict.
