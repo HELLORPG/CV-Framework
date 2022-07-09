@@ -5,6 +5,7 @@
 
 # Outputs
 outputs/
+checkpoints/
 
 # Dataset
 dataset/
