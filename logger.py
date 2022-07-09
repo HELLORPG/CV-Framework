@@ -111,6 +111,19 @@ class MetricLog:
         return
 
 
+class ProgressLog:
+    def __init__(self, epoch: int = None, total_step: int = None):
+        self.epoch = epoch
+        self.total_step = total_step
+        self.current_step = None
+
+    def update(self, current_step: int):
+        self.current_step = current_step
+
+    def fraction(self):
+        return self.current_step / self.total_step
+
+
 def parser_to_dict(log: argparse.ArgumentParser) -> dict:
     """
     Transform options to a dict.

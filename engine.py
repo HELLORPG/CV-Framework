@@ -9,7 +9,8 @@ from models.build import build_model
 from data.build import build_dataloader
 from utils import labels_to_one_hot
 from torch.optim import Adam
-from logger import MetricLog
+from logger import MetricLog, ProgressLog
+from tqdm import tqdm
 
 
 def train(config: dict):
@@ -56,21 +57,31 @@ def train_one_epoch(model: nn.Module, dataloader: DataLoader, loss_function: nn.
     """
     model.train()
     metric_log = MetricLog(epoch=epoch)
+    progress_log = ProgressLog(epoch=epoch, total_step=len(dataloader))
 
-    for images, labels in dataloader:
-        outputs = model(images)
-        labels = torch.from_numpy(labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"]))
+    with tqdm(total=len(dataloader)) as t:
+        for i, batch in enumerate(dataloader):
+            images, labels = batch
+            outputs = model(images)
+            labels = torch.from_numpy(labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"]))
 
-        loss = loss_function(outputs, labels)
+            loss = loss_function(outputs, labels)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        metric_log.update("loss", loss.item(), count=len(labels))
-        metric_log.update("acc", sum(torch.argmax(labels, dim=1) == torch.argmax(outputs, dim=1)).item() / len(labels),
-                          len(labels))
-        metric_log.mean()
-        print(metric_log.mean_metrics)
+            metric_log.update("loss", loss.item(), count=len(labels))
+            metric_log.update("acc", sum(torch.argmax(labels, dim=1) == torch.argmax(outputs, dim=1)).item() / len(labels),
+                              len(labels))
+            metric_log.mean()
+
+            progress_log.update(current_step=i)
+            t.set_description("Train")
+            t.set_postfix(loss="%.3f" % metric_log.mean_metrics["loss"],
+                          acc="%.2f%%" % (metric_log.mean_metrics["acc"]*100))
+            t.update(1)
+            # print("\r%s" % metric_log.mean_metrics)
+            # print(i, "/", len(dataloader))
 
     print("!")
