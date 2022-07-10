@@ -123,6 +123,9 @@ class Logger:
                 self.write_dict_to_json(log, filename, mode)
             else:
                 raise RuntimeError("Filename '%s' is not supported for dict log." % filename)
+        elif isinstance(log, MetricLog):
+            with open(os.path.join(self.logdir, filename), mode=mode) as f:
+                f.write(log.__str__() + "\n")
         else:
             raise RuntimeError("Log type '%s' is not supported." % type(log))
 

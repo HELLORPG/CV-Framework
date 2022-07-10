@@ -74,6 +74,7 @@ def train(config: dict, logger: Logger):
 
         # logger
         logger.show(log, "")
+        logger.write(log, "log.txt", mode="a")  # Write to log file.
         logger.tb_add_scalars(
             main_tag="acc",
             tag_scalar_dict={
