@@ -6,7 +6,7 @@
 # The name of the key should be unique.
 
 MODE: # "train" or "eval", for the main.py script.
-DEVICE: cpu
+DEVICE: cuda
 
 DATA:
   DATASET: MNIST
