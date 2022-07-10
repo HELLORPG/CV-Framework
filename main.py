@@ -76,4 +76,3 @@ if __name__ == '__main__':
 
     # Merge parser option and .yaml config, then run main function.
     main(config=update_config(config=cfg, option=opt))
-
