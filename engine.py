@@ -36,16 +36,21 @@ def train(config: dict, logger: Logger):
         dataset=config["DATA"]["DATASET"],
         root=config["DATA"]["DATA_PATH"],
         split="test",
-        bs=config["TRAIN"]["BATCH_SIZE"]*2
+        bs=config["TRAIN"]["BATCH_SIZE"] * 2
     )
 
     loss_function = nn.CrossEntropyLoss()
     optimizer = Adam(params=model.parameters(), lr=config["TRAIN"]["LR"])
 
-    if config["TRAIN"]["RESUME"] is not None:
-        load_checkpoint(config, model, path=config["TRAIN"]["RESUME"], optimizer=optimizer)
+    train_states = {
+        "start_epoch": 0
+    }
 
-    for epoch in range(0, config["TRAIN"]["EPOCHS"]):
+    # For RESUME
+    if config["TRAIN"]["RESUME"]["RESUME_MODEL"] is not None:
+        load_checkpoint(model, path=config["TRAIN"]["RESUME"]["RESUME_MODEL"], states=train_states, optimizer=optimizer)
+
+    for epoch in range(train_states["start_epoch"], config["TRAIN"]["EPOCHS"]):
         train_log = train_one_epoch(config=config, model=model,
                                     dataloader=train_dataloader, loss_function=loss_function,
                                     optimizer=optimizer,
@@ -54,8 +59,9 @@ def train(config: dict, logger: Logger):
                                       dataloader=test_dataloader, loss_function=loss_function)
         log = MetricLog.concat(metrics=[train_log, test_log])
         logger.show(log, "")
-        save_checkpoint(config, model=model,
+        save_checkpoint(model=model,
                         path=os.path.join(config["OUTPUTS"]["OUTPUTS_DIR"], "checkpoint_%d.pth" % epoch),
+                        states={"start_epoch": epoch+1},
                         optimizer=optimizer,
                         )
 
@@ -95,11 +101,11 @@ def train_one_epoch(config: dict, model: nn.Module,
 
             metric_log.update("train_loss", loss.item(), count=len(labels))
             metric_log.update("train_acc",
-                              sum(torch.argmax(labels, dim=1) == torch.argmax(outputs, dim=1)).item() / len(labels),
+                              sum(torch.argmax(labels, dim=1).eq(torch.argmax(outputs, dim=1))).item() / len(labels),
                               len(labels))
             metric_log.mean()
 
-            t.set_description("Train")
+            t.set_description("Train Epoch %d" % epoch)
             t.set_postfix(loss="%.3f" % metric_log.mean_metrics["train_loss"],
                           acc="%.2f%%" % (metric_log.mean_metrics["train_acc"] * 100))
             t.update(1)
@@ -122,7 +128,7 @@ def evaluate(config: dict, logger: Logger):
     """
     model = build_model(config=config)
     model.to(device=torch.device(config["DEVICE"]))
-    load_checkpoint(config, model, path=config["EVAL"]["EVAL_MODEL"])
+    load_checkpoint(model, path=config["EVAL"]["EVAL_MODEL"])
 
     dataloader = build_dataloader(
         dataset=config["DATA"]["DATASET"],
@@ -166,7 +172,7 @@ def evaluate_one_epoch(config: dict, model: nn.Module, dataloader: DataLoader, l
 
             metric_log.update("test_loss", loss.item(), count=len(labels))
             metric_log.update("test_acc",
-                              sum(torch.argmax(labels, dim=1) == torch.argmax(outputs, dim=1)).item() / len(labels),
+                              sum(torch.argmax(labels, dim=1).eq(torch.argmax(outputs, dim=1))).item() / len(labels),
                               len(labels))
             metric_log.mean()
 

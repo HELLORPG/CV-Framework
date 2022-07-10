@@ -43,7 +43,7 @@ def parse_option():
     parser.add_argument("--outputs-dir", type=str, help="Outputs dir.")
 
     # About train.
-    parser.add_argument("--resume", type=str, help="Resume training.")
+    parser.add_argument("--resume-model", type=str, help="Resume training model path.")
 
     return parser.parse_args()
 
