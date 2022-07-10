@@ -65,7 +65,7 @@ def train(config: dict, logger: Logger):
                         optimizer=optimizer,
                         )
 
-    # print("Here")
+    return
 
 
 def train_one_epoch(config: dict, model: nn.Module,
@@ -86,6 +86,8 @@ def train_one_epoch(config: dict, model: nn.Module,
     model.train()
     metric_log = MetricLog(epoch=epoch)
 
+    # Or t = tqdm(total=)
+    # Remember use t.close() at the end of these codes.
     with tqdm(total=len(dataloader)) as t:
         for i, batch in enumerate(dataloader):
             images, labels = batch
