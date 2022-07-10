@@ -17,7 +17,7 @@ def save_checkpoint(model: nn.Module, path: str, states: dict = None,
     save_state = {
         "model": model.state_dict(),
         "optimizer": None if optimizer is None else optimizer.state_dict(),
-        "lr_scheduler": None if scheduler is None else scheduler.state_dict(),
+        "scheduler": None if scheduler is None else scheduler.state_dict(),
         'states': states
     }
 

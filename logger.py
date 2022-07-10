@@ -7,6 +7,7 @@ import argparse
 import yaml
 
 from typing import List, Any
+from torch.utils import tensorboard as tb
 
 
 class MetricLog:
@@ -97,6 +98,8 @@ class Logger:
         """
         self.logdir = logdir
         os.makedirs(self.logdir, exist_ok=True)
+        os.makedirs(os.path.join(self.logdir, "tb_log"), exist_ok=True)
+        self.tb_logger = tb.SummaryWriter(log_dir=os.path.join(self.logdir, "tb_log"))
         return
 
     @classmethod
@@ -149,6 +152,20 @@ class Logger:
             f.write(json.dumps(log, indent=4))
             f.write("\n")
         return
+
+    def tb_add_scalars(self, main_tag: str, tag_scalar_dict: dict, global_step: int):
+        self.tb_logger.add_scalars(
+            main_tag=main_tag,
+            tag_scalar_dict=tag_scalar_dict,
+            global_step=global_step
+        )
+
+    def tb_add_scalar(self, tag: str, scalar_value: float, global_step: int):
+        self.tb_logger.add_scalar(
+            tag=tag,
+            scalar_value=scalar_value,
+            global_step=global_step
+        )
 
 
 def parser_to_dict(log: argparse.ArgumentParser) -> dict:
