@@ -7,6 +7,7 @@ import argparse
 import yaml
 import torch.distributed
 
+from tqdm import tqdm
 from typing import List, Any
 from torch.utils import tensorboard as tb
 from utils.utils import is_distributed, distributed_world_size, is_main_process
@@ -87,16 +88,32 @@ class MetricLog:
 
 
 class ProgressLog:
-    def __init__(self, epoch: int = None, total_step: int = None):
-        self.epoch = epoch
-        self.total_step = total_step
-        self.current_step = None
+    def __init__(self, total_len: int, prompt: str = None, only_main: bool = True):
+        """
+        初始化一个进度日志。
 
-    def update(self, current_step: int):
-        self.current_step = current_step
+        Args:
+            total_len:
+            prompt:
+            only_main: 只对主进程生效。
+        """
+        self.only_main = only_main
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            self.total_len = total_len
+            self.tqdm = tqdm(total=total_len)
+            self.prompt = prompt
+        else:
+            self.total_len = None
+            self.tqdm = None
+            self.prompt = None
 
-    def fraction(self):
-        return self.current_step / self.total_step
+    def update(self, step_len: int, **kwargs: Any):
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            self.tqdm.set_description(self.prompt)
+            self.tqdm.set_postfix(**kwargs)
+            self.tqdm.update(step_len)
+        else:
+            return
 
 
 class Logger:
