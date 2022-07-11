@@ -13,7 +13,6 @@ from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from logger import MetricLog, Logger, ProgressLogger
-from tqdm import tqdm
 
 
 def train(config: dict, logger: Logger):
@@ -192,7 +191,8 @@ def evaluate(config: dict, logger: Logger):
 
     log = evaluate_one_epoch(config=config, model=model, dataloader=dataloader, loss_function=loss_function)
 
-    torch.distributed.barrier()
+    if is_distributed():
+        torch.distributed.barrier()
     logger.show(log)
     logger.write(log, filename="eval_log.txt", mode="a")
 
