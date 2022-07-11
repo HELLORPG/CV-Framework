@@ -120,22 +120,30 @@ class Logger:
     """
     Log information.
     """
-    def __init__(self, logdir: str):
+    def __init__(self, logdir: str, only_main: bool = True):
         """
         Create a logger.
 
         Args:
             logdir (str): Logger outputs path.
+            only_main: 是否仅在主进程响应。
         """
-        self.logdir = logdir
-        os.makedirs(self.logdir, exist_ok=True)
-        os.makedirs(os.path.join(self.logdir, "tb_log"), exist_ok=True)
-        self.tb_logger = tb.SummaryWriter(log_dir=os.path.join(self.logdir, "tb_log"))
+        self.only_main = only_main
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            self.logdir = logdir
+            os.makedirs(self.logdir, exist_ok=True)
+            os.makedirs(os.path.join(self.logdir, "tb_log"), exist_ok=True)
+            self.tb_logger = tb.SummaryWriter(log_dir=os.path.join(self.logdir, "tb_log"))
+        else:
+            self.logdir = None
+            self.tb_logger = None
         return
 
-    @classmethod
-    def show(cls, log, prompt: str = ""):
-        print("%s%s" % (prompt, log))
+    def show(self, log, prompt: str = ""):
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            print("%s%s" % (prompt, log))
+        else:
+            pass
         return
 
     def write(self, log, filename: str, mode: str = "w"):
@@ -147,18 +155,22 @@ class Logger:
             filename: Write file name.
             mode: Open file with this mode.
         """
-        if isinstance(log, dict):
-            if len(filename) > 5 and filename[-5:] == ".yaml":
-                self.write_dict_to_yaml(log, filename, mode)
-            elif len(filename) > 5 and filename[-5:] == ".json":
-                self.write_dict_to_json(log, filename, mode)
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            if isinstance(log, dict):
+                if len(filename) > 5 and filename[-5:] == ".yaml":
+                    self.write_dict_to_yaml(log, filename, mode)
+                elif len(filename) > 5 and filename[-5:] == ".json":
+                    self.write_dict_to_json(log, filename, mode)
+                else:
+                    raise RuntimeError("Filename '%s' is not supported for dict log." % filename)
+            elif isinstance(log, MetricLog):
+                with open(os.path.join(self.logdir, filename), mode=mode) as f:
+                    f.write(log.__str__() + "\n")
             else:
-                raise RuntimeError("Filename '%s' is not supported for dict log." % filename)
-        elif isinstance(log, MetricLog):
-            with open(os.path.join(self.logdir, filename), mode=mode) as f:
-                f.write(log.__str__() + "\n")
+                raise RuntimeError("Log type '%s' is not supported." % type(log))
         else:
-            raise RuntimeError("Log type '%s' is not supported." % type(log))
+            pass
+        return
 
     def write_dict_to_yaml(self, log: dict, filename: str, mode: str = "w"):
         """

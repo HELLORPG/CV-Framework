@@ -65,7 +65,7 @@ def main(config: dict):
         # https://i.steer.space/blog/2021/01/pytorch-dist-nccl-backend-allgather-stuck
         # os.environ['CUDA_VISIBLE_DEVICES'] =
         torch.distributed.init_process_group("nccl")
-        torch.cuda.set_device(distributed_rank())
+        torch.cuda.set_device(config["GPUS"][distributed_rank()])
 
     # Logging options and configs.
     if is_main_process():
