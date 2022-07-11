@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from models.utils import build_model, save_checkpoint, load_checkpoint
 from data.utils import build_dataloader
-from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
+from utils.utils import labels_to_one_hot, is_distributed, distributed_rank, is_main_process
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from logger import MetricLog, Logger
@@ -75,30 +75,31 @@ def train(config: dict, logger: Logger):
                                       dataloader=test_dataloader, loss_function=loss_function)
         log = MetricLog.concat(metrics=[train_log, test_log])
 
-        # logger
-        logger.show(log, "")
-        logger.write(log, "log.txt", mode="a")  # Write to log file.
-        logger.tb_add_scalars(
-            main_tag="acc",
-            tag_scalar_dict={
-                "train": log.mean_metrics["train_acc"],
-                "test": log.mean_metrics["test_acc"]
-            },
-            global_step=epoch+1
-        )
-        logger.tb_add_scalar(
-            tag="lr",
-            scalar_value=optimizer.state_dict()["param_groups"][0]["lr"],
-            global_step=epoch+1
-        )
+        # logger, only for main process!
+        if is_main_process():
+            logger.show(log, "")
+            logger.write(log, "log.txt", mode="a")  # Write to log file.
+            logger.tb_add_scalars(
+                main_tag="acc",
+                tag_scalar_dict={
+                    "train": log.mean_metrics["train_acc"],
+                    "test": log.mean_metrics["test_acc"]
+                },
+                global_step=epoch+1
+            )
+            logger.tb_add_scalar(
+                tag="lr",
+                scalar_value=optimizer.state_dict()["param_groups"][0]["lr"],
+                global_step=epoch+1
+            )
 
-        # Save checkpoint.
-        save_checkpoint(model=model,
-                        path=os.path.join(config["OUTPUTS"]["OUTPUTS_DIR"], "checkpoint_%d.pth" % (epoch+1)),
-                        states={"start_epoch": epoch+1},
-                        optimizer=optimizer,
-                        scheduler=scheduler
-                        )
+            # Save checkpoint.
+            save_checkpoint(model=model,
+                            path=os.path.join(config["OUTPUTS"]["OUTPUTS_DIR"], "checkpoint_%d.pth" % (epoch+1)),
+                            states={"start_epoch": epoch+1},
+                            optimizer=optimizer,
+                            scheduler=scheduler
+                            )
 
         # Next step.
         scheduler.step()
@@ -185,7 +186,9 @@ def evaluate(config: dict, logger: Logger):
     loss_function = nn.CrossEntropyLoss()
 
     log = evaluate_one_epoch(config=config, model=model, dataloader=dataloader, loss_function=loss_function)
-    logger.show(log)
+
+    if is_main_process():
+        logger.show(log)
 
     return
 

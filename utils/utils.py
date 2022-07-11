@@ -23,6 +23,13 @@ def is_main_process():
     return distributed_rank() == 0
 
 
+def distributed_world_size():
+    if is_distributed():
+        return torch.distributed.get_world_size()
+    else:
+        raise RuntimeError("'world size' is not available when distributed mode is not started.")
+
+
 def yaml_to_dict(path: str):
     """
     Read a yaml file into a dict.

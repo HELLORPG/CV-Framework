@@ -16,11 +16,9 @@ def build_model(config: dict):
     # Distributed
     if is_distributed():
         if config["GPUS"] is None:
-            print("====> config['GPUS'] should not be empty when using distributed mode.")
-            exit(-1)
+            raise RuntimeError("====> config['GPUS'] should not be empty when using distributed mode.")
         if config["DEVICE"] != "cuda":
-            print("====> Distributed mode ONLY support 'cuda' device.")
-            exit(-1)
+            raise RuntimeError("====> Distributed mode ONLY support 'cuda' device.")
         model.to(device=torch.device(config["DEVICE"], distributed_rank()))
         model = DDP(model, device_ids=[distributed_rank()])
         # print("Hello")

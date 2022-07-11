@@ -5,9 +5,11 @@ import os
 import json
 import argparse
 import yaml
+import torch.distributed
 
 from typing import List, Any
 from torch.utils import tensorboard as tb
+from utils.utils import is_distributed, distributed_world_size, is_main_process
 
 
 class MetricLog:
@@ -40,8 +42,20 @@ class MetricLog:
 
     def mean(self):
         self.mean_metrics = dict()
-        for k in self.metrics.keys():
-            self.mean_metrics[k] = sum([i*j for i, j in zip(self.metrics[k], self.counts[k])]) / sum(self.counts[k])
+        if is_distributed():
+            # 如果分布式训练，则需要计算所有节点上的平均值。
+            torch.distributed.barrier()
+            metrics_gather = [None] * distributed_world_size()
+            counts_gather = [None] * distributed_world_size()
+            torch.distributed.all_gather_object(metrics_gather, self.metrics)
+            torch.distributed.all_gather_object(counts_gather, self.counts)
+            metrics_gather, counts_gather = merge_dicts(metrics_gather), merge_dicts(counts_gather)
+            for k in metrics_gather.keys():
+                self.mean_metrics[k] = \
+                    sum([i*j for i, j in zip(metrics_gather[k], counts_gather[k])]) / sum(counts_gather[k])
+        else:
+            for k in self.metrics.keys():
+                self.mean_metrics[k] = sum([i*j for i, j in zip(self.metrics[k], self.counts[k])]) / sum(self.counts[k])
         return
 
     def __str__(self):
@@ -187,5 +201,24 @@ def parser_to_dict(log: argparse.ArgumentParser) -> dict:
             opts_dict[k] = v
     return opts_dict
 
+
+def merge_dicts(dicts: List[dict]) -> dict:
+    """
+    将输入的两个字典进行合并，字典的值均是 list 形式。
+    所有 list 拼接成为一个最终的 list 作为最终的值。
+
+    Args:
+        dicts:
+
+    Returns:
+        Merged dict.
+    """
+    merged = dict()
+    for d in dicts:
+        for k, v in d.items():
+            if k not in merged.keys():
+                merged[k] = list()
+            merged[k] += v
+    return merged
 
 

@@ -1,12 +1,11 @@
 # @Author       : Ruopeng Gao
 # @Date         : 2022/7/5
 # @Description  : Main Function.
-
-
+import os
 import argparse
 import torch.distributed
 
-from utils.utils import yaml_to_dict, is_main_process
+from utils.utils import yaml_to_dict, is_main_process, distributed_rank
 from logger import Logger, parser_to_dict
 from configs.config import update_config
 from engine import train, evaluate
@@ -62,7 +61,11 @@ def main(config: dict):
     logger = Logger(logdir=config["OUTPUTS"]["OUTPUTS_DIR"])
 
     if config["DISTRIBUTED"]["USE_DISTRIBUTED"]:
+        # 改变此处顺序会导致 gather 卡死，相关链接：
+        # https://i.steer.space/blog/2021/01/pytorch-dist-nccl-backend-allgather-stuck
+        # os.environ['CUDA_VISIBLE_DEVICES'] =
         torch.distributed.init_process_group("nccl")
+        torch.cuda.set_device(distributed_rank())
 
     # Logging options and configs.
     if is_main_process():
