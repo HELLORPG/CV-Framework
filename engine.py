@@ -12,7 +12,7 @@ from data.utils import build_dataloader
 from utils.utils import labels_to_one_hot, is_distributed, distributed_rank, is_main_process
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
-from logger import MetricLog, Logger, ProgressLog
+from logger import MetricLog, Logger, ProgressLogger
 from tqdm import tqdm
 
 
@@ -134,9 +134,9 @@ def train_one_epoch(config: dict, model: nn.Module,
     # Or t = tqdm(total=)
     # Remember use t.close() at the end of these codes.
     # with tqdm(total=len(dataloader)) as t:
-    process_log = ProgressLog(total_len=len(dataloader),
-                              prompt="Train %d Epoch" % (epoch + 1)
-                              )
+    process_log = ProgressLogger(total_len=len(dataloader),
+                                 prompt="Train %d Epoch" % (epoch + 1)
+                                 )
 
     for i, batch in enumerate(dataloader):
         images, labels = batch
@@ -225,7 +225,7 @@ def evaluate_one_epoch(config: dict, model: nn.Module, dataloader: DataLoader, l
         device = torch.device(config["DEVICE"])
 
     # with tqdm(total=len(dataloader)) as t:
-    process_log = ProgressLog(total_len=len(dataloader), prompt="Eval")
+    process_log = ProgressLogger(total_len=len(dataloader), prompt="Eval")
 
     for i, batch in enumerate(dataloader):
         images, labels = batch

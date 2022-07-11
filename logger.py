@@ -87,7 +87,7 @@ class MetricLog:
         return log
 
 
-class ProgressLog:
+class ProgressLogger:
     def __init__(self, total_len: int, prompt: str = None, only_main: bool = True):
         """
         初始化一个进度日志。
