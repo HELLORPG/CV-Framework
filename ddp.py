@@ -11,8 +11,8 @@ args = parser.parse_args()
 
 dist.init_process_group("nccl")
 rank = dist.get_rank()
-local_rank_arg = args.local_rank               # 命令行形式ARGS形式
-local_rank_env = int(os.environ['LOCAL_RANK']) # 在利用env初始ENV环境变量形式
+local_rank_arg = args.local_rank                # 命令行形式ARGS形式
+local_rank_env = int(os.environ['LOCAL_RANK'])  # 在利用env初始ENV环境变量形式
 local_world_size = int(os.environ['LOCAL_WORLD_SIZE'])
 d = {
     "hello": local_rank_env
