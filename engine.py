@@ -194,6 +194,7 @@ def evaluate(config: dict, logger: Logger):
 
     torch.distributed.barrier()
     logger.show(log)
+    logger.write(log, filename="eval_log.txt", mode="a")
 
     return
 
