@@ -2,7 +2,25 @@
 # @Date         : 2022/7/5
 # @Description  : Some utils.
 import yaml
+import torch.distributed
 import numpy as np
+
+
+def is_distributed():
+    if not (torch.distributed.is_available() and torch.distributed.is_initialized()):
+        return False
+    return True
+
+
+def distributed_rank():
+    if not is_distributed():
+        return 0
+    else:
+        return torch.distributed.get_rank()
+
+
+def is_main_process():
+    return distributed_rank() == 0
 
 
 def yaml_to_dict(path: str):
@@ -32,6 +50,6 @@ def labels_to_one_hot(labels: np.ndarray, class_num: int):
 
 
 if __name__ == '__main__':
-    config = yaml_to_dict("./configs/resnet18_mnist.yaml")
+    config = yaml_to_dict("../configs/resnet18_mnist.yaml")
 
 

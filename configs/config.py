@@ -25,7 +25,12 @@ def update_config_with_kv(config: dict, k: str, v) -> [bool, dict]:
             if hit:
                 break
         elif config_k == k.upper():
-            config[config_k] = v
+            if v == "True":
+                config[config_k] = True
+            elif v == "False":
+                config[config_k] = False
+            else:
+                config[config_k] = v
             hit = True
             break
     return hit, config

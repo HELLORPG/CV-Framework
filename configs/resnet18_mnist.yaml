@@ -7,11 +7,13 @@
 
 MODE: # "train" or "eval", for the main.py script.
 DEVICE: cuda
+GPUS: [0, 1, 2, 3]
 
 DATA:
   DATASET: MNIST
   DATA_PATH: ./dataset/MNIST/
   CLASS_NUM: 10
+  NUM_WORKERS: 0
 
 MODEL:
   PRETRAINED:
@@ -33,4 +35,7 @@ EVAL:
 
 OUTPUTS:
   OUTPUTS_DIR: ./outputs/
+
+DISTRIBUTED:
+  USE_DISTRIBUTED: False
 

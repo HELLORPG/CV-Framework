@@ -3,11 +3,13 @@
 # @Description  : You may have not only one dataset for your model training and evaluation.
 #                 I think it is elegant to provide a unified method for different datasets in this file.
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampler, DistributedSampler
 from .mnist import build_mnist_dataloader
+from typing import Tuple, Any, Union, Type
 
 
-def build_dataloader(dataset: str, root: str, split: str, bs: int) -> DataLoader:
+def build_dataloader(dataset: str, root: str, split: str, bs: int, num_workers: int = 1) -> \
+        tuple[DataLoader[Any], Union[DistributedSampler[Any], RandomSampler, Type[SequentialSampler]]]:
     """
     A unified method to build a dataloader.
 
@@ -16,12 +18,13 @@ def build_dataloader(dataset: str, root: str, split: str, bs: int) -> DataLoader
         root: Dataset root.
         split: Data split.
         bs: Batch size.
+        num_workers:
 
     Returns:
         A DataLoader.
     """
     if dataset == "MNIST":
-        return build_mnist_dataloader(root=root, split=split, bs=bs)
+        return build_mnist_dataloader(root=root, split=split, bs=bs, num_workers=num_workers)
     else:
         raise RuntimeError("Unknown dataset name '%s'." % dataset)
 

@@ -4,8 +4,9 @@
 
 
 import argparse
+import torch.distributed
 
-from utils import yaml_to_dict
+from utils.utils import yaml_to_dict, is_main_process
 from logger import Logger, parser_to_dict
 from configs.config import update_config
 from engine import train, evaluate
@@ -45,6 +46,9 @@ def parse_option():
     # About train.
     parser.add_argument("--resume-model", type=str, help="Resume training model path.")
 
+    # Distributed.
+    parser.add_argument("--use-distributed", type=str, help="Whether use distributed mode.")
+
     return parser.parse_args()
 
 
@@ -55,13 +59,15 @@ def main(config: dict):
     Args:
         config: Model configs.
     """
-
-    print(config["OUTPUTS"]["OUTPUTS_DIR"])
     logger = Logger(logdir=config["OUTPUTS"]["OUTPUTS_DIR"])
 
+    if config["DISTRIBUTED"]["USE_DISTRIBUTED"]:
+        torch.distributed.init_process_group("nccl")
+
     # Logging options and configs.
-    logger.show(log=config, prompt="Main configs: ")
-    logger.write(config, "config.yaml")
+    if is_main_process():
+        logger.show(log=config, prompt="Main configs: ")
+        logger.write(config, "config.yaml")
 
     if config["MODE"] == "train":
         train(config=config, logger=logger)

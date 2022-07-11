@@ -2,14 +2,36 @@
 # @Date         : 2022/7/5
 # @Description  : To build a model.
 import torch
+import torch.distributed
 import torch.nn as nn
 import torch.optim as optim
 
 from .resnet18 import ResNet18
+from torch.nn.parallel import DistributedDataParallel as DDP
+from utils.utils import is_distributed, distributed_rank
 
 
 def build_model(config: dict):
-    return ResNet18(config=config)
+    model = ResNet18(config=config)
+    # Distributed
+    if is_distributed():
+        if config["GPUS"] is None:
+            print("====> config['GPUS'] should not be empty when using distributed mode.")
+            exit(-1)
+        if config["DEVICE"] != "cuda":
+            print("====> Distributed mode ONLY support 'cuda' device.")
+            exit(-1)
+        model.to(device=torch.device(config["DEVICE"], distributed_rank()))
+        model = DDP(model, device_ids=[distributed_rank()])
+        # print("Hello")
+        # exit(-1)
+    else:
+        if config["GPUS"] is not None and config["DEVICE"] == "cuda":
+            model.to(device=torch.device(config["DEVICE"], config["GPUS"][0]))
+        else:
+            model.to(device=torch.device(config["DEVICE"]))
+
+    return model
 
 
 def save_checkpoint(model: nn.Module, path: str, states: dict = None,

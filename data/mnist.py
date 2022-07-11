@@ -5,11 +5,16 @@ import gzip
 import os
 
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampler, BatchSampler, Sampler, \
+    DistributedSampler
 from torchvision import transforms
+from torch.utils.data.distributed import DistributedSampler
+from utils.utils import is_distributed
+from typing import Tuple, Any, Union, Type
 
 
-def build_mnist_dataloader(root: str, split: str, bs: int) -> DataLoader:
+def build_mnist_dataloader(root: str, split: str, bs: int, num_workers: int) -> \
+        tuple[DataLoader[Any], Union[DistributedSampler[Any], RandomSampler, Type[SequentialSampler]]]:
     """
     Build a DataLoader for MNIST data.
 
@@ -17,23 +22,32 @@ def build_mnist_dataloader(root: str, split: str, bs: int) -> DataLoader:
         root: Data root path.
         split: Data split.
         bs: Batch size.
+        num_workers:
 
     Returns:
         A DataLoader.
     """
     mnist_dataset = MNISTDataset(root=root, split=split, transforms=transforms.ToTensor())
+    if is_distributed():
+        sampler = DistributedSampler(mnist_dataset, shuffle=True if split == "train" else False)
+    else:
+        sampler = RandomSampler(mnist_dataset) if split == "train" else SequentialSampler(mnist_dataset)
+
+    # batch_sampler = BatchSampler(sampler, bs, drop_last=False)
 
     return DataLoader(
         dataset=mnist_dataset,
+        sampler=sampler,
         batch_size=bs,
-        shuffle=True if split == "train" else False
-    )
+        num_workers=num_workers
+    ), sampler
 
 
 class MNIST:
     """
     MNIST data API.
     """
+
     def __init__(self, root: str):
         """
         Init a MNIST data API by data root and data split you need.
@@ -81,6 +95,7 @@ class MNISTDataset(Dataset):
     """
     A Dataset class for MNIST dataset.
     """
+
     def __init__(self, root: str, split: str, transforms=None):
         """
         Init a MNIST dataset class.
@@ -111,5 +126,6 @@ class MNISTDataset(Dataset):
 
 if __name__ == '__main__':
     import torch.backends.mps
+
     print(torch.backends.mps.is_built())
     pass

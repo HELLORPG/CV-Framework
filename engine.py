@@ -7,8 +7,8 @@ import torch.nn as nn
 
 from torch.utils.data import DataLoader
 from models.utils import build_model, save_checkpoint, load_checkpoint
-from data.build import build_dataloader
-from utils import labels_to_one_hot
+from data.utils import build_dataloader
+from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from logger import MetricLog, Logger
@@ -24,20 +24,21 @@ def train(config: dict, logger: Logger):
         logger: A logger.
     """
     model = build_model(config=config)
-    model.to(device=torch.device(config["DEVICE"]))
 
-    train_dataloader = build_dataloader(
+    train_dataloader, train_sampler = build_dataloader(
         dataset=config["DATA"]["DATASET"],
         root=config["DATA"]["DATA_PATH"],
         split="train",
-        bs=config["TRAIN"]["BATCH_SIZE"]
+        bs=config["TRAIN"]["BATCH_SIZE"],
+        num_workers=config["DATA"]["NUM_WORKERS"]
     )
 
-    test_dataloader = build_dataloader(
+    test_dataloader, _ = build_dataloader(
         dataset=config["DATA"]["DATASET"],
         root=config["DATA"]["DATA_PATH"],
         split="test",
-        bs=config["TRAIN"]["BATCH_SIZE"] * 2
+        bs=config["TRAIN"]["BATCH_SIZE"] * 2,
+        num_workers=config["DATA"]["NUM_WORKERS"]
     )
 
     loss_function = nn.CrossEntropyLoss()
@@ -63,6 +64,8 @@ def train(config: dict, logger: Logger):
 
     for epoch in range(train_states["start_epoch"], config["TRAIN"]["EPOCHS"]):
         logger.show("="*os.get_terminal_size().columns)
+        if is_distributed():
+            train_sampler.set_epoch(epoch)
 
         train_log = train_one_epoch(config=config, model=model,
                                     dataloader=train_dataloader, loss_function=loss_function,
@@ -120,15 +123,19 @@ def train_one_epoch(config: dict, model: nn.Module,
     """
     model.train()
     metric_log = MetricLog(epoch=epoch+1)
+    if is_distributed():
+        device = torch.device(config["DEVICE"], config["GPUS"][distributed_rank()])
+    else:
+        device = torch.device(config["DEVICE"])
 
     # Or t = tqdm(total=)
     # Remember use t.close() at the end of these codes.
     with tqdm(total=len(dataloader)) as t:
         for i, batch in enumerate(dataloader):
             images, labels = batch
-            outputs = model(images.to(torch.device(config["DEVICE"])))
+            outputs = model(images.to(device))
             labels = torch.from_numpy(
-                labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(torch.device(config["DEVICE"]))
+                labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(device)
 
             loss = loss_function(outputs, labels)
 
@@ -167,11 +174,12 @@ def evaluate(config: dict, logger: Logger):
     model.to(device=torch.device(config["DEVICE"]))
     load_checkpoint(model, path=config["EVAL"]["EVAL_MODEL"])
 
-    dataloader = build_dataloader(
+    dataloader, _ = build_dataloader(
         dataset=config["DATA"]["DATASET"],
         root=config["DATA"]["DATA_PATH"],
         split="test",
-        bs=config["TRAIN"]["BATCH_SIZE"] * 2
+        bs=config["TRAIN"]["BATCH_SIZE"] * 2,
+        num_workers=config["DATA"]["NUM_WORKERS"]
     )
 
     loss_function = nn.CrossEntropyLoss()
@@ -197,13 +205,17 @@ def evaluate_one_epoch(config: dict, model: nn.Module, dataloader: DataLoader, l
     """
     model.eval()
     metric_log = MetricLog()
+    if is_distributed():
+        device = torch.device(config["DEVICE"], config["GPUS"][distributed_rank()])
+    else:
+        device = torch.device(config["DEVICE"])
 
     with tqdm(total=len(dataloader)) as t:
         for i, batch in enumerate(dataloader):
             images, labels = batch
-            outputs = model(images.to(torch.device(config["DEVICE"])))
+            outputs = model(images.to(device))
             labels = torch.from_numpy(
-                labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(torch.device(config["DEVICE"]))
+                labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(device)
 
             loss = loss_function(outputs, labels)
 
