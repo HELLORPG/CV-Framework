@@ -200,18 +200,26 @@ class Logger:
         return
 
     def tb_add_scalars(self, main_tag: str, tag_scalar_dict: dict, global_step: int):
-        self.tb_logger.add_scalars(
-            main_tag=main_tag,
-            tag_scalar_dict=tag_scalar_dict,
-            global_step=global_step
-        )
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            self.tb_logger.add_scalars(
+                main_tag=main_tag,
+                tag_scalar_dict=tag_scalar_dict,
+                global_step=global_step
+            )
+        else:
+            pass
+        return
 
     def tb_add_scalar(self, tag: str, scalar_value: float, global_step: int):
-        self.tb_logger.add_scalar(
-            tag=tag,
-            scalar_value=scalar_value,
-            global_step=global_step
-        )
+        if (self.only_main and is_main_process()) or (self.only_main is False):
+            self.tb_logger.add_scalar(
+                tag=tag,
+                scalar_value=scalar_value,
+                global_step=global_step
+            )
+        else:
+            pass
+        return
 
 
 def parser_to_dict(log: argparse.ArgumentParser) -> dict:
