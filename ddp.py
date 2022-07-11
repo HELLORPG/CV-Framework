@@ -1,9 +1,9 @@
 # @Author       : Ruopeng Gao
 # @Date         : 2022/7/10
 # @Description  : DDP learning file.
-
 import torch.distributed as dist
-import argparse, os
+import argparse
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--local_rank", type=int, default=0)
