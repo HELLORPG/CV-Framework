@@ -134,15 +134,12 @@ def train_one_epoch(config: dict, model: nn.Module,
     # Or t = tqdm(total=)
     # Remember use t.close() at the end of these codes.
     # with tqdm(total=len(dataloader)) as t:
-    process_log = ProgressLogger(total_len=len(dataloader),
-                                 prompt="Train %d Epoch" % (epoch + 1)
-                                 )
+    process_log = ProgressLogger(total_len=len(dataloader), prompt="Train %d Epoch" % (epoch + 1))
 
     for i, batch in enumerate(dataloader):
         images, labels = batch
         outputs = model(images.to(device))
-        labels = torch.from_numpy(
-            labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(device)
+        labels = torch.from_numpy(labels_to_one_hot(labels, config["DATA"]["CLASS_NUM"])).to(device)
 
         loss = loss_function(outputs, labels)
 
