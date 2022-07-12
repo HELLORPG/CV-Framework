@@ -35,7 +35,7 @@
 ├── README.md
 ├── ddp_test.py
 ├── engine.py
-├── logger.py
+├── log.py
 ├── main.py
 └── run.sh
 ```

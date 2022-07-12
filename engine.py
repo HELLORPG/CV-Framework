@@ -12,7 +12,8 @@ from data.utils import build_dataloader
 from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
-from logger.logger import MetricLog, Logger, ProgressLogger
+from log.logger import Logger, ProgressLogger
+from log.log import MetricLog
 
 
 def train(config: dict, logger: Logger):
@@ -21,7 +22,7 @@ def train(config: dict, logger: Logger):
 
     Args:
         config: Mainly config.
-        logger: A logger.
+        logger: A log.
     """
     model = build_model(config=config)
 
@@ -75,7 +76,7 @@ def train(config: dict, logger: Logger):
                                       dataloader=test_dataloader, loss_function=loss_function)
         log = MetricLog.concat(metrics=[train_log, test_log])
 
-        # logger, only for main process!
+        # log, only for main process!
         logger.show(log, "")
         logger.write(log, "log.txt", mode="a")  # Write to log file.
         logger.tb_add_scalars(
