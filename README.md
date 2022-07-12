@@ -11,3 +11,31 @@
 - [x] 日志输出
 - [x] 进度条展示
 - [x] 分布式模式
+
+
+## Project Tree
+```bash
+.
+├── configs
+│   ├── __init__.py
+│   ├── resnet18_mnist.yaml
+│   └── utils.py
+├── data
+│   ├── __init__.py
+│   ├── mnist.py
+│   └── utils.py
+├── models
+│   ├── __init__.py
+│   ├── resnet18.py
+│   └── utils.py
+├── utils
+│   ├── __init__.py
+│   └── utils.py
+├── LICENSE
+├── README.md
+├── ddp_test.py
+├── engine.py
+├── logger.py
+├── main.py
+└── run.sh
+```
