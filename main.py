@@ -7,7 +7,7 @@ import torch.distributed
 
 from utils.utils import yaml_to_dict, is_main_process, distributed_rank
 from logger import Logger, parser_to_dict
-from configs.config import update_config
+from configs.utils import update_config
 from engine import train, evaluate
 
 
