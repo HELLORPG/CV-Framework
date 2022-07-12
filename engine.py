@@ -12,7 +12,7 @@ from data.utils import build_dataloader
 from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
-from logger import MetricLog, Logger, ProgressLogger
+from logger.logger import MetricLog, Logger, ProgressLogger
 
 
 def train(config: dict, logger: Logger):
