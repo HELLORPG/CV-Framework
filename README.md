@@ -24,6 +24,10 @@
 │   ├── __init__.py
 │   ├── mnist.py
 │   └── utils.py
+├── log
+│   ├── __init__.py
+│   ├── logger.py
+│   └── log.py
 ├── models
 │   ├── __init__.py
 │   ├── resnet18.py
@@ -35,7 +39,6 @@
 ├── README.md
 ├── ddp_test.py
 ├── engine.py
-├── log.py
 ├── main.py
 └── run.sh
 ```
