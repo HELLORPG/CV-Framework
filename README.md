@@ -37,7 +37,6 @@
 │   └── utils.py
 ├── LICENSE
 ├── README.md
-├── ddp_test.py
 ├── engine.py
 ├── main.py
 └── run.sh
