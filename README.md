@@ -16,23 +16,23 @@
 ## Project Tree
 ```bash
 .
-├── configs
+├── configs   # 配置文件以及相关函数
 │   ├── __init__.py
 │   ├── resnet18_mnist.yaml
 │   └── utils.py
-├── data
+├── data      # 数据操作，包括构造 Dataset DataLoader
 │   ├── __init__.py
 │   ├── mnist.py
 │   └── utils.py
-├── log
+├── log       # 日志操作，包括了日志输出、存储和计算
 │   ├── __init__.py
 │   ├── logger.py
 │   └── log.py
-├── models
+├── models    # 网络结构
 │   ├── __init__.py
 │   ├── resnet18.py
 │   └── utils.py
-├── utils
+├── utils     # utils
 │   ├── __init__.py
 │   └── utils.py
 ├── LICENSE
