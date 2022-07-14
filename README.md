@@ -41,3 +41,45 @@
 ├── main.py
 └── run.sh
 ```
+
+
+## 配置文件
+
+整个项目的配置信息（例如模型具体层数、训练方式、各类超参数等）都放在文件夹 [configs](./configs) 中。
+其中配置信息以`.yaml`文件的形式存储，样例如下：
+```yaml
+MODE: train
+DEVICE: cuda
+GPUS: [0, 1, 2, 3, 4, 5, 6, 7]
+
+DATA:
+  DATASET: MNIST
+  DATA_PATH: ./dataset/MNIST/
+  CLASS_NUM: 10
+  NUM_WORKERS: 0
+
+MODEL:
+  PRETRAINED: False
+
+TRAIN:
+  LR: 0.0001
+  BATCH_SIZE: 32
+  EPOCHS: 10
+  RESUME:
+    RESUME_MODEL:
+    START_EPOCH:
+    CHECKPOINT_OPTIM_STATE: True
+  SCHEDULER:
+    MILESTONES: [6, 8]
+    GAMMA: 0.5
+
+EVAL:
+  EVAL_MODEL:
+
+OUTPUTS:
+  OUTPUTS_DIR: ./outputs/
+
+DISTRIBUTED:
+  USE_DISTRIBUTED: False
+```
+
