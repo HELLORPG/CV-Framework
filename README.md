@@ -12,6 +12,8 @@
 - [x] 进度条展示
 - [x] 分布式模式
 
+下载 [MNIST](https://github.com/HELLORPG/CV-Framework/releases/download/v1.0.0/MNIST.zip) 数据集之后无需解压，默认放在`./dataset/MNIST/`路径下，运行`run.sh`中的所有语句就可以进行功能测试。
+
 
 ## Project Tree
 ```bash
