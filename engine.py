@@ -64,7 +64,7 @@ def train(config: dict, logger: Logger):
                 scheduler.step()
 
     for epoch in range(train_states["start_epoch"], config["TRAIN"]["EPOCHS"]):
-        logger.show("="*os.get_terminal_size().columns)
+        logger.show("="*40)
         if is_distributed():
             train_sampler.set_epoch(epoch)
 
