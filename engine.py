@@ -8,7 +8,7 @@ import torch.distributed
 
 from torch.utils.data import DataLoader
 from models.utils import build_model, save_checkpoint, load_checkpoint
-from data.utils import build_dataloader
+from data import build_dataset, build_sampler, build_dataloader
 from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
@@ -29,19 +29,34 @@ def train(config: dict, logger: Logger):
 
     model = build_model(config=config)
 
-    train_dataloader, train_sampler = build_dataloader(
-        dataset=config["DATA"]["DATASET"],
-        root=config["DATA"]["DATA_PATH"],
-        split="train",
-        bs=config["TRAIN"]["BATCH_SIZE"],
-        num_workers=config["DATA"]["NUM_WORKERS"]
+    train_dataset = build_dataset(
+        config=config,
+        split="train"
+    )
+    test_dataset = build_dataset(
+        config=config,
+        split="test"
     )
 
-    test_dataloader, _ = build_dataloader(
-        dataset=config["DATA"]["DATASET"],
-        root=config["DATA"]["DATA_PATH"],
-        split="test",
-        bs=config["TRAIN"]["BATCH_SIZE"] * 2,
+    train_sampler = build_sampler(
+        dataset=train_dataset,
+        shuffle=True
+    )
+    test_sampler = build_sampler(
+        dataset=test_dataset,
+        shuffle=False
+    )
+
+    train_dataloader = build_dataloader(
+        dataset=train_dataset,
+        batch_size=config["TRAIN"]["BATCH_SIZE"],
+        sampler=train_sampler,
+        num_workers=config["DATA"]["NUM_WORKERS"]
+    )
+    test_dataloader = build_dataloader(
+        dataset=test_dataset,
+        batch_size=config["TRAIN"]["BATCH_SIZE"]*2,
+        sampler=test_sampler,
         num_workers=config["DATA"]["NUM_WORKERS"]
     )
 
@@ -187,11 +202,20 @@ def evaluate(config: dict, logger: Logger):
     # model.to(device=torch.device(config["DEVICE"]))
     load_checkpoint(model, path=config["EVAL"]["EVAL_MODEL"])
 
-    dataloader, _ = build_dataloader(
-        dataset=config["DATA"]["DATASET"],
-        root=config["DATA"]["DATA_PATH"],
-        split="test",
-        bs=config["TRAIN"]["BATCH_SIZE"] * 2,
+    test_dataset = build_dataset(
+        config=config,
+        split="test"
+    )
+
+    test_sampler = build_sampler(
+        dataset=test_dataset,
+        shuffle=False
+    )
+
+    test_dataloader = build_dataloader(
+        dataset=test_dataset,
+        batch_size=config["TRAIN"]["BATCH_SIZE"] * 2,
+        sampler=test_sampler,
         num_workers=config["DATA"]["NUM_WORKERS"]
     )
 
@@ -200,7 +224,7 @@ def evaluate(config: dict, logger: Logger):
     if is_distributed():
         model = DDP(model, device_ids=[distributed_rank()])
 
-    log = evaluate_one_epoch(config=config, model=model, dataloader=dataloader, loss_function=loss_function)
+    log = evaluate_one_epoch(config=config, model=model, dataloader=test_dataloader, loss_function=loss_function)
 
     if is_distributed():
         torch.distributed.barrier()

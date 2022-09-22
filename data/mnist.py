@@ -124,6 +124,14 @@ class MNISTDataset(Dataset):
         return len(self.labels)
 
 
+def build(config: dict, split: str) -> MNISTDataset:
+    return MNISTDataset(
+        root=config["DATA"]["DATA_PATH"],
+        split=split,
+        transforms=transforms.ToTensor()
+    )
+
+
 if __name__ == '__main__':
     import torch.backends.mps
 
