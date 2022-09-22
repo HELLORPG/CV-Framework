@@ -15,6 +15,8 @@ from torch.optim.lr_scheduler import MultiStepLR
 from log.logger import Logger, ProgressLogger
 from log.log import MetricLog
 
+from torch.nn.parallel import DistributedDataParallel as DDP
+
 
 def train(config: dict, logger: Logger):
     """
@@ -24,6 +26,7 @@ def train(config: dict, logger: Logger):
         config: Mainly config.
         logger: A log.
     """
+
     model = build_model(config=config)
 
     train_dataloader, train_sampler = build_dataloader(
@@ -62,6 +65,10 @@ def train(config: dict, logger: Logger):
                             states=train_states)
             for i in range(0, train_states["start_epoch"]):
                 scheduler.step()
+
+    # 在 RESUME 之后才进行 DDP，这样可以将参数传递给不同设备上的模型，而不需要多次 Load
+    if is_distributed():
+        model = DDP(model, device_ids=[distributed_rank()])
 
     for epoch in range(train_states["start_epoch"], config["TRAIN"]["EPOCHS"]):
         logger.show("="*40)
@@ -125,7 +132,7 @@ def train_one_epoch(config: dict, model: nn.Module,
     model.train()
     metric_log = MetricLog(epoch=epoch+1)
     if is_distributed():
-        device = torch.device(config["DEVICE"], config["GPUS"][distributed_rank()])
+        device = torch.device(config["DEVICE"], distributed_rank())
     else:
         device = torch.device(config["DEVICE"])
 
@@ -177,7 +184,7 @@ def evaluate(config: dict, logger: Logger):
 
     """
     model = build_model(config=config)
-    model.to(device=torch.device(config["DEVICE"]))
+    # model.to(device=torch.device(config["DEVICE"]))
     load_checkpoint(model, path=config["EVAL"]["EVAL_MODEL"])
 
     dataloader, _ = build_dataloader(
@@ -189,6 +196,9 @@ def evaluate(config: dict, logger: Logger):
     )
 
     loss_function = nn.CrossEntropyLoss()
+
+    if is_distributed():
+        model = DDP(model, device_ids=[distributed_rank()])
 
     log = evaluate_one_epoch(config=config, model=model, dataloader=dataloader, loss_function=loss_function)
 
@@ -216,7 +226,7 @@ def evaluate_one_epoch(config: dict, model: nn.Module, dataloader: DataLoader, l
     model.eval()
     metric_log = MetricLog()
     if is_distributed():
-        device = torch.device(config["DEVICE"], config["GPUS"][distributed_rank()])
+        device = torch.device(config["DEVICE"], distributed_rank())
     else:
         device = torch.device(config["DEVICE"])
 

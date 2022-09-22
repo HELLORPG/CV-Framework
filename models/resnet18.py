@@ -4,8 +4,10 @@
 
 
 import torchvision
+from torchvision.models import ResNet18_Weights
 
 import torch.nn as nn
+from utils.utils import is_main_process
 
 
 class ResNet18(nn.Module):
@@ -13,7 +15,10 @@ class ResNet18(nn.Module):
         super(ResNet18, self).__init__()
 
         if config["MODEL"]["PRETRAINED"] is None:
-            self.model = torchvision.models.resnet18(weights=None)
+            if is_main_process():   # 仅仅在主进程进行参数 Load，可以减少读写开销
+                self.model = torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)
+            else:
+                self.model = torchvision.models.resnet18(weights=None)
         else:
             raise RuntimeError("Unsupported pretrained '%s'." % config["MODEL"]["PRETRAINED"])
 

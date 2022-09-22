@@ -58,6 +58,8 @@ def main(config: dict):
     Args:
         config: Model configs.
     """
+    # 在环境变量级别设定可用 GPUs
+    os.environ['CUDA_VISIBLE_DEVICES'] = config["AVAILABLE_GPUS"]
     logger = Logger(logdir=config["OUTPUTS"]["OUTPUTS_DIR"])
 
     if config["DISTRIBUTED"]["USE_DISTRIBUTED"]:
@@ -65,7 +67,7 @@ def main(config: dict):
         # https://i.steer.space/blog/2021/01/pytorch-dist-nccl-backend-allgather-stuck
         # os.environ['CUDA_VISIBLE_DEVICES'] =
         torch.distributed.init_process_group("nccl")
-        torch.cuda.set_device(config["GPUS"][distributed_rank()])
+        torch.cuda.set_device(distributed_rank())
 
     # Logging options and configs.
     if is_main_process():
