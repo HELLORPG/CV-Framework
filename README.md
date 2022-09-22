@@ -52,7 +52,7 @@
 ```yaml
 MODE: train
 DEVICE: cuda
-GPUS: [0, 1, 2, 3, 4, 5, 6, 7]
+AVAILABLE_GPUS: 0,1,2,3,4,5,6,7
 
 DATA:
   DATASET: MNIST
