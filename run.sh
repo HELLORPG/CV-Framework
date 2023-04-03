@@ -11,8 +11,8 @@ python main.py --mode train --outputs-dir ./outputs/single_gpu/resume/ --use-dis
 
 # 多卡测试
 echo "Begin >> Multi GPU: Train from scratch."
-python -m torch.distributed.run --nproc_per_node=8 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True
 echo "Begin >> Multi GPU: Eval the latest model."
-python -m torch.distributed.run --nproc_per_node=8 main.py --mode eval --outputs-dir ./outputs/multi_gpu/eval/ --use-distributed True --eval-model ./outputs/multi_gpu/train/checkpoint_10.pth
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode eval --outputs-dir ./outputs/multi_gpu/eval/ --use-distributed True --eval-model ./outputs/multi_gpu/train/checkpoint_10.pth
 echo "Begin >> Multi GPU: Resume training."
-python -m torch.distributed.run --nproc_per_node=8 main.py --mode train --outputs-dir ./outputs/multi_gpu/resume/ --use-distributed True --resume-model ./outputs/multi_gpu/train/checkpoint_5.pth
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/resume/ --use-distributed True --resume-model ./outputs/multi_gpu/train/checkpoint_5.pth
