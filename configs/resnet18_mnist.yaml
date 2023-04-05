@@ -42,3 +42,6 @@ OUTPUTS_DIR: ./outputs/temp/
 OUTPUTS_PER_STEP: 40
 USE_TENSORBOARD: True
 USE_WANDB: True
+PROJECT_NAME: CV_Framework
+EXP_NAME: default
+EXP_GROUP: main

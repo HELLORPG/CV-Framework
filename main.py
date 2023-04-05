@@ -43,6 +43,7 @@ def parse_option():
 
     # About outputs.
     parser.add_argument("--outputs-dir", type=str, help="Outputs dir.")
+    parser.add_argument("--exp-name", type=str, help="Exp name.")
 
     # About train.
     parser.add_argument("--resume-model", type=str, help="Resume training model path.")
@@ -80,7 +81,8 @@ def main(config: dict):
         logdir=os.path.join(config["OUTPUTS_DIR"], config["MODE"]),
         use_tensorboard=config["USE_TENSORBOARD"],
         use_wandb=config["USE_WANDB"],
-        only_main=True
+        only_main=True,
+        config=config
     )
     # Log runtime config.
     if is_main_process():

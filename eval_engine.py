@@ -62,6 +62,7 @@ def evaluate(config: dict, logger: Logger):
 
     return
 
+
 @torch.no_grad()
 def evaluate_one_epoch(config: dict, model: nn.Module, logger: Logger, dataloader: DataLoader):
     model.eval()

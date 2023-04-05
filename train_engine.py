@@ -82,7 +82,8 @@ def train(config: dict, logger: Logger):
 
     # Train States:
     train_states = {
-        "start_epoch": 0
+        "start_epoch": 0,
+        "current_iter": 0
     }
 
     # For resume:
@@ -113,12 +114,20 @@ def train(config: dict, logger: Logger):
         # Train one epoch:
         train_metrics = train_one_epoch(config=config, model=model, logger=logger,
                                         dataloader=train_dataloader, loss_function=loss_function,
-                                        optimizer=optimizer, epoch=epoch)
+                                        optimizer=optimizer, epoch=epoch, states=train_states)
         time_per_epoch = TPS.format(TPS.timestamp() - epoch_start_timestamp)
         logger.print_metrics(
             metrics=train_metrics,
             prompt=f"[Epoch {epoch} Finish] [Total Time: {time_per_epoch}] ",
             fmt="{global_average:.4f}"
+        )
+        logger.save_metrics(
+            metrics=train_metrics,
+            prompt=f"[Epoch {epoch} Finish] [Total Time: {time_per_epoch}] ",
+            fmt="{global_average:.4f}",
+            statistic="global_average",
+            global_step=train_states["current_iter"],
+            prefix="epoch"
         )
 
         # Eval current epoch:
@@ -128,11 +137,25 @@ def train(config: dict, logger: Logger):
             metrics=test_metrics,
             prompt=f"[Epoch {epoch} Eval] "
         )
+        logger.save_metrics(
+            metrics=test_metrics,
+            prompt=f"[Epoch {epoch} Eval] ",
+            fmt="{global_average:.4f}",
+            statistic="global_average",
+            global_step=train_states["current_iter"],
+            prefix="epoch"
+        )
+
+        # For WandB
+        logger.wandb_log(
+            data={"epoch": epoch},
+            step=train_states["current_iter"]
+        )
 
         # Save checkpoint.
         save_checkpoint(model=model,
                         path=os.path.join(config["OUTPUTS_DIR"], f"checkpoint_{epoch}.pth"),
-                        states={"start_epoch": epoch+1},
+                        states=train_states,
                         optimizer=optimizer,
                         scheduler=scheduler
                         )
@@ -145,7 +168,7 @@ def train(config: dict, logger: Logger):
 
 def train_one_epoch(config: dict, model: nn.Module, logger: Logger,
                     dataloader: DataLoader, loss_function: nn.Module, optimizer: torch.optim,
-                    epoch: int):
+                    epoch: int, states: dict):
     model.train()
     metrics = Metrics()   # save metrics
     tps = TPS()             # save time per step
@@ -184,5 +207,14 @@ def train_one_epoch(config: dict, model: nn.Module, logger: Logger,
                 metrics=metrics,
                 prompt=f"[Epoch: {epoch}] [{i}/{len(dataloader)}] [tps: {tps.average:.2f}s] [eta: {TPS.format(eta)}] "
             )
+            logger.save_metrics(
+                metrics=metrics,
+                prompt=f"[Epoch: {epoch}] [{i}/{len(dataloader)}] [tps: {tps.average:.2f}s] ",
+                global_step=states["current_iter"],
+            )
+
+        states["current_iter"] += 1
+
+    states["start_epoch"] += 1
 
     return metrics

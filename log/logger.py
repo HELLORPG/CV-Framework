@@ -5,6 +5,8 @@ import os
 import json
 import argparse
 import yaml
+import wandb
+import time
 
 from tqdm import tqdm
 from typing import List, Any
@@ -49,7 +51,8 @@ class Logger:
     """
     Log information.
     """
-    def __init__(self, logdir: str, use_tensorboard: bool = True, use_wandb: bool = True, only_main: bool = True):
+    def __init__(self, logdir: str, use_tensorboard: bool = True, use_wandb: bool = True, only_main: bool = True,
+                 config: dict = None):
         """
         Create a log.
 
@@ -58,6 +61,7 @@ class Logger:
             use_tensorboard: Whether output tensorboard files.
             use_wandb: Whether output WandB files.
             only_main: Only in the main process.
+            config:
         """
         self.only_main = only_main
         self.use_tensorboard = use_tensorboard
@@ -65,7 +69,8 @@ class Logger:
         self.is_activate = (self.only_main and is_main_process()) or (self.only_main is False)
 
         self.logdir = None
-        self.tb_writer = None
+        self.tensorboard_writer = None
+        self.wandb_run = None
         if self.is_activate:
             # init the logdir.
             self.logdir = logdir
@@ -73,15 +78,21 @@ class Logger:
             if self.use_tensorboard:    # init the tensorboard writer (SummaryWriter):
                 tensorboard_dir = os.path.join(self.logdir, "tensorboard")
                 os.makedirs(tensorboard_dir, exist_ok=True)
-                self.tb_writer = tb.SummaryWriter(log_dir=tensorboard_dir)
+                self.tensorboard_writer = tb.SummaryWriter(log_dir=tensorboard_dir)
+            if self.use_wandb:
+                # wandb_dir = os.path.join(self.logdir, "wandb")
+                # os.makedirs(wandb_dir, exist_ok=True)
+                wandb_dir = self.logdir
+                timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))
+                exp_name = f"{config['EXP_NAME']}_{timestamp}"
+                self.wandb_run = wandb.init(
+                    dir=wandb_dir,
+                    project=config["PROJECT_NAME"],
+                    group=config["EXP_GROUP"],
+                    name=exp_name,
+                    config=config,
+                )
 
-        return
-
-    def show(self, log, prompt: str = ""):
-        if (self.only_main and is_main_process()) or (self.only_main is False):
-            print("%s%s" % (prompt, log))
-        else:
-            pass
         return
 
     def print_config(self, config: dict, prompt: str = ""):
@@ -102,47 +113,45 @@ class Logger:
             print(metrics.fmt(fmt=fmt))
         return
 
+    def save_metrics_to_file(self, metrics: Metrics, prompt: str = "",
+                             fmt: str = "{average:.4f} ({global_average:.4f})",
+                             filename: str = "log.txt", mode: str = "a"):
+        if self.is_activate:
+            log = f"{prompt}{metrics.fmt(fmt=fmt)}\n"
+            self.save_log_to_file(log=log, filename=filename, mode=mode)
+        return
+
+    def save_log_to_file(self, log: str, filename: str = "log.txt", mode: str = "w"):
+        if self.is_activate:
+            with open(os.path.join(self.logdir, filename), mode=mode) as f:
+                f.write(log)
+        return
+
     def save_metrics(self, metrics: Metrics, prompt: str = "",
-                     fmt: str = "{average:.4f} ({global_average:.4f})", statistic: str = "average"):
+                     fmt: str = "{average:.4f} ({global_average:.4f})",
+                     statistic: str = "average", global_step: int = 0, prefix: None | str = None):
         """
+        Save the metrics into .txt/tensorboard/wandb.
 
         Args:
-            metrics:
+            metrics: The metrics to save.
             prompt:
-            fmt:
-            statistic:
-
+            fmt: Format for Metric Value. If fmt is None, we will not output these into the log.txt file.
+            statistic: Which statistic is output to tensorboard and wandb.
+                       If is None, we will not output these to tensorboard nor wandb.
+            global_step:
+            prefix:
         Returns:
 
         """
-
-    def print(self, log):
-        pass
-
-    def write(self, log, filename: str, mode: str = "w"):
-        """
-        Logger write a log to a file.
-
-        Args:
-            log: A log.
-            filename: Write file name.
-            mode: Open file with this mode.
-        """
-        if (self.only_main and is_main_process()) or (self.only_main is False):
-            if isinstance(log, dict):
-                if len(filename) > 5 and filename[-5:] == ".yaml":
-                    self.write_dict_to_yaml(log, filename, mode)
-                elif len(filename) > 5 and filename[-5:] == ".json":
-                    self.write_dict_to_json(log, filename, mode)
-                else:
-                    raise RuntimeError("Filename '%s' is not supported for dict log." % filename)
-            elif isinstance(log, MetricLo):
-                with open(os.path.join(self.logdir, filename), mode=mode) as f:
-                    f.write(log.__str__() + "\n")
-            else:
-                raise RuntimeError("Log type '%s' is not supported." % type(log))
-        else:
-            pass
+        if fmt is not None:
+            self.save_metrics_to_file(metrics=metrics, prompt=prompt, fmt=fmt, filename="log.txt", mode="a")
+        if statistic is not None:
+            if self.use_tensorboard:
+                self.metrics_to_tensorboard(metrics=metrics, statistic=statistic,
+                                            global_step=global_step, prefix=prefix)
+            if self.use_wandb:
+                self.metrics_to_wandb(metrics=metrics, statistic=statistic, global_step=global_step, prefix=prefix)
         return
 
     def _write_dict_to_yaml(self, x: dict, filename: str, mode: str = "w"):
@@ -150,7 +159,7 @@ class Logger:
             yaml.dump(x, f, allow_unicode=True)
         return
 
-    def write_dict_to_json(self, log: dict, filename: str, mode: str = "w"):
+    def _write_dict_to_json(self, log: dict, filename: str, mode: str = "w"):
         """
         Logger writes a dict log to a .json file.
 
@@ -164,27 +173,64 @@ class Logger:
             f.write("\n")
         return
 
-    def tb_add_scalars(self, main_tag: str, tag_scalar_dict: dict, global_step: int):
-        if (self.only_main and is_main_process()) or (self.only_main is False):
-            self.tb_logger.add_scalars(
-                main_tag=main_tag,
-                tag_scalar_dict=tag_scalar_dict,
-                global_step=global_step
-            )
+    # def tb_add_scalars(self, main_tag: str, tag_scalar_dict: dict, global_step: int):
+    #     if (self.only_main and is_main_process()) or (self.only_main is False):
+    #         self.tb_logger.add_scalars(
+    #             main_tag=main_tag,
+    #             tag_scalar_dict=tag_scalar_dict,
+    #             global_step=global_step
+    #         )
+    #     else:
+    #         pass
+    #     return
+
+    def tensorboard_add_scalar(self, name: str, value: float, global_step: int):
+        if self.is_activate:
+            if self.use_tensorboard:
+                self.tensorboard_writer.add_scalar(
+                    tag=name,
+                    scalar_value=value,
+                    global_step=global_step
+                )
+            else:
+                pass
         else:
             pass
         return
 
-    def tb_add_scalar(self, tag: str, scalar_value: float, global_step: int):
-        if (self.only_main and is_main_process()) or (self.only_main is False):
-            self.tb_logger.add_scalar(
-                tag=tag,
-                scalar_value=scalar_value,
-                global_step=global_step
-            )
-        else:
-            pass
+    def wandb_log(self, data: dict, step: int):
+        if self.is_activate:
+            if self.use_wandb:
+                wandb.log(data=data, step=step)
         return
+    # def name_value_to_statistic(self, name: str, value: float, global_step: int):
+    #     if self.use_tensorboard:
+    #         self.tensorboard_add_scalar(name=name, value=value, global_step=global_step)
+    #     if self.use_wandb:
+
+    def metrics_to_tensorboard(self, metrics: Metrics, statistic: str = "average",
+                               global_step: int = 0, prefix: None | str = None):
+        for name, value in metrics.metrics.items():
+            if prefix is not None:
+                metric_name = f"{prefix}_{name}"
+            else:
+                metric_name = name
+            metric_value = value.__getattribute__(statistic)
+            self.tensorboard_add_scalar(
+                name=metric_name, value=metric_value, global_step=global_step
+            )
+        return
+
+    def metrics_to_wandb(self, metrics: Metrics, statistic: str = "average",
+                         global_step: int = 0, prefix: None | str = None):
+        for name, value in metrics.metrics.items():
+            if prefix is not None:
+                metric_name = f"{prefix}_{name}"
+            else:
+                metric_name = name
+            metric_value = value.__getattribute__(statistic)
+            self.wandb_log(data={metric_name: metric_value}, step=global_step)
+        pass
 
 
 def parser_to_dict(log: argparse.ArgumentParser) -> dict:
