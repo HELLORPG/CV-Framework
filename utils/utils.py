@@ -1,9 +1,26 @@
 # @Author       : Ruopeng Gao
 # @Date         : 2022/7/5
 # @Description  : Some utils.
+import os
+import random
+
 import yaml
+import torch
 import torch.distributed
+import random
 import numpy as np
+
+
+def set_seed(seed: int):
+    seed = seed + distributed_rank()    # 用于避免每张卡的随机结果是一样的
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    return
 
 
 def is_distributed():
@@ -53,7 +70,8 @@ def labels_to_one_hot(labels: np.ndarray, class_num: int):
     Returns:
         Labels in one-hot.
     """
-    return np.eye(N=class_num)[labels]
+    return np.eye(N=class_num)[labels].reshape((len(labels), -1))
+    # return np.eye(N=class_num)[labels]
 
 
 if __name__ == '__main__':

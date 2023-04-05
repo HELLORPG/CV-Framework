@@ -47,15 +47,24 @@ def update_config(config: dict, option: argparse.Namespace) -> dict:
     Returns:
         New config dict.
     """
-    if is_unique(config)[0] is False:
-        raise RuntimeError("Config's key is not unique, Please check the config file.")
+    # v2.0 DO NOT need to check uniqueness
+    # if is_unique(config)[0] is False:
+    #     raise RuntimeError("Config's key is not unique, Please check the config file.")
 
     for option_k, option_v in vars(option).items():
-        if option_k != "config_path" and option_v is not None:
-            # except --config-path
-            hit, config = update_config_with_kv(config=config, k=option_k, v=option_v)
-            if hit is False:
-                raise RuntimeError("The option '--%s' is not appeared in .yaml config file." % option_k)
+        if option_k != "config_path" and option_v is not None:  # except --config-path
+            # v2.0 remove hierarchical config setting, using plain config setting.
+            # hit, config = update_config_with_kv(config=config, k=option_k, v=option_v)
+            config_k = option_k.upper()
+            if config_k in config:
+                if option_v == "True":
+                    config[config_k] = True
+                elif option_v == "False":
+                    config[config_k] = False
+                else:
+                    config[config_k] = option_v
+            else:
+                raise RuntimeError(f"The option '{option_k}' is not appeared in .yaml config file.")
     return config
 
 

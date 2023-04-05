@@ -11,15 +11,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from utils.utils import is_distributed, distributed_rank, is_main_process
 
 
-def build_model(config: dict):
-    model = ResNet18(config=config)
-    # Distributed
-    if config["AVAILABLE_GPUS"] is not None and config["DEVICE"] == "cuda":
-        model.to(device=torch.device(config["DEVICE"], distributed_rank()))
-    else:
-        model.to(device=torch.device(config["DEVICE"]))
-
-    return model
 
 
 def get_model(model):

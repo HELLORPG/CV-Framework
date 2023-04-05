@@ -22,19 +22,10 @@ from .mnist import build as build_mnist
 
 
 def build_dataset(config: dict, split: str):
-    """
-    Build a dataset.
-    Args:
-        config: main config.
-        split: "train" or "test" or else.
-
-    Returns:
-
-    """
-    if config["DATA"]["DATASET"] == "MNIST":
+    if config["DATASET"] == "MNIST":
         return build_mnist(config, split)
     else:
-        raise ValueError(f"Do not support dataset {config['DATA']['DATASET']}")
+        raise ValueError(f"Do not support dataset {config['DATASET']}.")
 
 
 def build_sampler(dataset, shuffle: bool):

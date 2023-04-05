@@ -10,7 +10,7 @@ from tqdm import tqdm
 from typing import List, Any
 from torch.utils import tensorboard as tb
 
-from log.log import MetricLog
+from log.log import Metrics
 from utils.utils import is_main_process
 
 
@@ -25,7 +25,9 @@ class ProgressLogger:
             only_main: 只对主进程生效。
         """
         self.only_main = only_main
-        if (self.only_main and is_main_process()) or (self.only_main is False):
+        self.is_activate = (self.only_main and is_main_process()) or (self.only_main is False)
+
+        if self.is_activate:
             self.total_len = total_len
             self.tqdm = tqdm(total=total_len)
             self.prompt = prompt
@@ -47,23 +49,32 @@ class Logger:
     """
     Log information.
     """
-    def __init__(self, logdir: str, only_main: bool = True):
+    def __init__(self, logdir: str, use_tensorboard: bool = True, use_wandb: bool = True, only_main: bool = True):
         """
         Create a log.
 
         Args:
             logdir (str): Logger outputs path.
-            only_main: 是否仅在主进程响应。
+            use_tensorboard: Whether output tensorboard files.
+            use_wandb: Whether output WandB files.
+            only_main: Only in the main process.
         """
         self.only_main = only_main
-        if (self.only_main and is_main_process()) or (self.only_main is False):
+        self.use_tensorboard = use_tensorboard
+        self.use_wandb = use_wandb
+        self.is_activate = (self.only_main and is_main_process()) or (self.only_main is False)
+
+        self.logdir = None
+        self.tb_writer = None
+        if self.is_activate:
+            # init the logdir.
             self.logdir = logdir
             os.makedirs(self.logdir, exist_ok=True)
-            os.makedirs(os.path.join(self.logdir, "tb_log"), exist_ok=True)
-            self.tb_logger = tb.SummaryWriter(log_dir=os.path.join(self.logdir, "tb_log"))
-        else:
-            self.logdir = None
-            self.tb_logger = None
+            if self.use_tensorboard:    # init the tensorboard writer (SummaryWriter):
+                tensorboard_dir = os.path.join(self.logdir, "tensorboard")
+                os.makedirs(tensorboard_dir, exist_ok=True)
+                self.tb_writer = tb.SummaryWriter(log_dir=tensorboard_dir)
+
         return
 
     def show(self, log, prompt: str = ""):
@@ -72,6 +83,41 @@ class Logger:
         else:
             pass
         return
+
+    def print_config(self, config: dict, prompt: str = ""):
+        if self.is_activate:
+            print(prompt, end="")
+            for _ in config:
+                print(f"{_.lower()}:{config[_]}; ", end="")
+            print("")
+
+    def save_config(self, config: dict, filename: str):
+        if self.is_activate:
+            self._write_dict_to_yaml(x=config, filename=filename, mode="w")
+        return
+
+    def print_metrics(self, metrics: Metrics, prompt: str = "", fmt: str = "{average:.4f} ({global_average:.4f})"):
+        if self.is_activate:
+            print(prompt, end="")
+            print(metrics.fmt(fmt=fmt))
+        return
+
+    def save_metrics(self, metrics: Metrics, prompt: str = "",
+                     fmt: str = "{average:.4f} ({global_average:.4f})", statistic: str = "average"):
+        """
+
+        Args:
+            metrics:
+            prompt:
+            fmt:
+            statistic:
+
+        Returns:
+
+        """
+
+    def print(self, log):
+        pass
 
     def write(self, log, filename: str, mode: str = "w"):
         """
@@ -90,7 +136,7 @@ class Logger:
                     self.write_dict_to_json(log, filename, mode)
                 else:
                     raise RuntimeError("Filename '%s' is not supported for dict log." % filename)
-            elif isinstance(log, MetricLog):
+            elif isinstance(log, MetricLo):
                 with open(os.path.join(self.logdir, filename), mode=mode) as f:
                     f.write(log.__str__() + "\n")
             else:
@@ -99,17 +145,9 @@ class Logger:
             pass
         return
 
-    def write_dict_to_yaml(self, log: dict, filename: str, mode: str = "w"):
-        """
-        Logger writes a dict log to a .yaml file.
-
-        Args:
-            log: A dict log.
-            filename: A yaml file's name.
-            mode: Open with this mode.
-        """
+    def _write_dict_to_yaml(self, x: dict, filename: str, mode: str = "w"):
         with open(os.path.join(self.logdir, filename), mode=mode) as f:
-            yaml.dump(log, f, allow_unicode=True)
+            yaml.dump(x, f, allow_unicode=True)
         return
 
     def write_dict_to_json(self, log: dict, filename: str, mode: str = "w"):
