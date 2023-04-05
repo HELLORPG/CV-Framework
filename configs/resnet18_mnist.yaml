@@ -44,4 +44,3 @@ USE_TENSORBOARD: True
 USE_WANDB: True
 PROJECT_NAME: CV_Framework
 EXP_NAME: default
-EXP_GROUP: main

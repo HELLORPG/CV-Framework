@@ -88,7 +88,6 @@ class Logger:
                 self.wandb_run = wandb.init(
                     dir=wandb_dir,
                     project=config["PROJECT_NAME"],
-                    group=config["EXP_GROUP"],
                     name=exp_name,
                     config=config,
                 )
