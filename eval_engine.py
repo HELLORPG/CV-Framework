@@ -17,7 +17,6 @@ from log.log import Metrics
 from utils.utils import is_distributed, distributed_rank, labels_to_one_hot
 
 
-
 def evaluate(config: dict, logger: Logger):
     """
     Evaluate a model.
@@ -58,6 +57,15 @@ def evaluate(config: dict, logger: Logger):
     logger.print_metrics(
         metrics=eval_metrics,
         prompt=f"Eval model {config['EVAL_MODEL']}: "
+    )
+    logger.save_metrics(
+        metrics=eval_metrics,
+        prompt=f"Eval model {config['EVAL_MODEL']}: ",
+        fmt="{global_average:.4f}",
+        statistic="global_average",
+        global_step=0,
+        filename="eval_log.txt",
+        file_mode="a"
     )
 
     return
