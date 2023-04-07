@@ -84,7 +84,8 @@ class Logger:
                 # os.makedirs(wandb_dir, exist_ok=True)
                 wandb_dir = self.logdir
                 timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))
-                exp_name = f"{config['EXP_NAME']}_{timestamp}" if config["EXP_NAME"] is not None else f"{timestamp}"
+                # exp_name = f"{config['EXP_NAME']}_{timestamp}" if config["EXP_NAME"] is not None else f"{timestamp}"
+                exp_name = f"{config['EXP_NAME']}" if config["EXP_NAME"] is not None else f"{timestamp}"
                 self.wandb_run = wandb.init(
                     dir=wandb_dir,
                     project=config["PROJECT_NAME"],
