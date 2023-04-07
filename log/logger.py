@@ -143,7 +143,7 @@ class Logger:
                        If is None, we will not output these to tensorboard nor wandb.
             global_step:
             prefix:
-            x_axis_step:
+            x_axis_step: https://github.com/wandb/wandb/issues/410
             x_axis_name:
             filename:
             file_mode:
