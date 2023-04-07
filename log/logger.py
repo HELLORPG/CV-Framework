@@ -130,7 +130,8 @@ class Logger:
     def save_metrics(self, metrics: Metrics, prompt: str = "",
                      fmt: None | str = "{average:.4f} ({global_average:.4f})",
                      statistic: None | str = "average", global_step: int = 0, prefix: None | str = None,
-                     x_axis_step: None | int = None, x_axis_name: None | str = None):
+                     x_axis_step: None | int = None, x_axis_name: None | str = None,
+                     filename: str = "log.txt", file_mode: str = "a"):
         """
         Save the metrics into .txt/tensorboard/wandb.
 
@@ -144,11 +145,13 @@ class Logger:
             prefix:
             x_axis_step:
             x_axis_name:
+            filename:
+            file_mode:
         Returns:
 
         """
         if fmt is not None:
-            self.save_metrics_to_file(metrics=metrics, prompt=prompt, fmt=fmt, filename="log.txt", mode="a")
+            self.save_metrics_to_file(metrics=metrics, prompt=prompt, fmt=fmt, filename=filename, mode=file_mode)
         if statistic is not None:
             if self.use_tensorboard:
                 self.save_metrics_to_tensorboard(
