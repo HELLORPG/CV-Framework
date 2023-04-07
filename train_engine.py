@@ -127,7 +127,9 @@ def train(config: dict, logger: Logger):
             fmt="{global_average:.4f}",
             statistic="global_average",
             global_step=train_states["current_iter"],
-            prefix="epoch"
+            prefix="epoch",
+            x_axis_step=epoch,
+            x_axis_name="epoch"
         )
 
         # Eval current epoch:
@@ -143,13 +145,9 @@ def train(config: dict, logger: Logger):
             fmt="{global_average:.4f}",
             statistic="global_average",
             global_step=train_states["current_iter"],
-            prefix="epoch"
-        )
-
-        # For WandB
-        logger.wandb_log(
-            data={"epoch": epoch},
-            step=train_states["current_iter"]
+            prefix="epoch",
+            x_axis_step=epoch,
+            x_axis_name="epoch"
         )
 
         # Save checkpoint.

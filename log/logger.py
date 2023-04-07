@@ -84,13 +84,14 @@ class Logger:
                 # os.makedirs(wandb_dir, exist_ok=True)
                 wandb_dir = self.logdir
                 timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))
-                exp_name = f"{config['EXP_NAME']}_{timestamp}"
+                exp_name = f"{config['EXP_NAME']}_{timestamp}" if config["EXP_NAME"] is not None else f"{timestamp}"
                 self.wandb_run = wandb.init(
                     dir=wandb_dir,
                     project=config["PROJECT_NAME"],
+                    group=config["EXP_GROUP"],
                     name=exp_name,
                     config=config,
-                )
+                )   # for more details, see https://docs.wandb.ai/ref/python/init
 
         return
 
@@ -127,8 +128,9 @@ class Logger:
         return
 
     def save_metrics(self, metrics: Metrics, prompt: str = "",
-                     fmt: str = "{average:.4f} ({global_average:.4f})",
-                     statistic: str = "average", global_step: int = 0, prefix: None | str = None):
+                     fmt: None | str = "{average:.4f} ({global_average:.4f})",
+                     statistic: None | str = "average", global_step: int = 0, prefix: None | str = None,
+                     x_axis_step: None | int = None, x_axis_name: None | str = None):
         """
         Save the metrics into .txt/tensorboard/wandb.
 
@@ -140,6 +142,8 @@ class Logger:
                        If is None, we will not output these to tensorboard nor wandb.
             global_step:
             prefix:
+            x_axis_step:
+            x_axis_name:
         Returns:
 
         """
@@ -147,10 +151,22 @@ class Logger:
             self.save_metrics_to_file(metrics=metrics, prompt=prompt, fmt=fmt, filename="log.txt", mode="a")
         if statistic is not None:
             if self.use_tensorboard:
-                self.metrics_to_tensorboard(metrics=metrics, statistic=statistic,
-                                            global_step=global_step, prefix=prefix)
+                self.save_metrics_to_tensorboard(
+                    metrics=metrics,
+                    statistic=statistic,
+                    global_step=global_step if x_axis_step is None else x_axis_step,
+                    prefix=prefix
+                )
             if self.use_wandb:
-                self.metrics_to_wandb(metrics=metrics, statistic=statistic, global_step=global_step, prefix=prefix)
+                self.save_metrics_to_wandb(metrics=metrics, statistic=statistic,
+                                           global_step=global_step, prefix=prefix)
+                if x_axis_step is not None:
+                    if x_axis_name is None:
+                        raise RuntimeError(f"If you set x_axis_step, you should also set a valid x_axis_name.")
+                    self.wandb_log(
+                        data={x_axis_name: x_axis_step},
+                        step=global_step
+                    )
         return
 
     def _write_dict_to_yaml(self, x: dict, filename: str, mode: str = "w"):
@@ -207,8 +223,8 @@ class Logger:
     #         self.tensorboard_add_scalar(name=name, value=value, global_step=global_step)
     #     if self.use_wandb:
 
-    def metrics_to_tensorboard(self, metrics: Metrics, statistic: str = "average",
-                               global_step: int = 0, prefix: None | str = None):
+    def save_metrics_to_tensorboard(self, metrics: Metrics, statistic: str = "average",
+                                    global_step: int = 0, prefix: None | str = None):
         for name, value in metrics.metrics.items():
             if prefix is not None:
                 metric_name = f"{prefix}_{name}"
@@ -220,8 +236,8 @@ class Logger:
             )
         return
 
-    def metrics_to_wandb(self, metrics: Metrics, statistic: str = "average",
-                         global_step: int = 0, prefix: None | str = None):
+    def save_metrics_to_wandb(self, metrics: Metrics, statistic: str = "average",
+                              global_step: int = 0, prefix: None | str = None):
         for name, value in metrics.metrics.items():
             if prefix is not None:
                 metric_name = f"{prefix}_{name}"
