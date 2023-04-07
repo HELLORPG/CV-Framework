@@ -61,7 +61,7 @@ class Logger:
             use_tensorboard: Whether output tensorboard files.
             use_wandb: Whether output WandB files.
             only_main: Only in the main process.
-            config:
+            config: Runtime config.
         """
         self.only_main = only_main
         self.use_tensorboard = use_tensorboard
@@ -138,16 +138,17 @@ class Logger:
 
         Args:
             metrics: The metrics to save.
-            prompt:
+            prompt: Prompt of logging metrics.
             fmt: Format for Metric Value. If fmt is None, we will not output these into the log.txt file.
             statistic: Which statistic is output to tensorboard and wandb.
                        If is None, we will not output these to tensorboard nor wandb.
-            global_step:
-            prefix:
-            x_axis_step: https://github.com/wandb/wandb/issues/410
-            x_axis_name:
-            filename:
-            file_mode:
+            global_step: Global step of metrics records, generally, we set it to total iter of model training.
+            prefix: Prefix of all metrics.
+                    If your metric name is "loss", prefix is "epoch", the final name of this metric is "epoch_loss".
+            x_axis_step: A different X-axis value from global step.
+            x_axis_name: Name of X-axis.
+            filename: The filename for saving metrics log.
+            file_mode: The file mode for saving, like "w" or "a".
         Returns:
 
         """
@@ -167,7 +168,7 @@ class Logger:
                 if x_axis_step is not None:
                     if x_axis_name is None:
                         raise RuntimeError(f"If you set x_axis_step, you should also set a valid x_axis_name.")
-                    self.wandb_log(
+                    self.wandb_log(     # see https://github.com/wandb/wandb/issues/410 for more details.
                         data={x_axis_name: x_axis_step},
                         step=global_step
                     )
