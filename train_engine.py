@@ -12,7 +12,7 @@ from models import build_model
 from models.utils import save_checkpoint, load_checkpoint
 from models.criterion import build as build_criterion
 from data import build_dataset, build_sampler, build_dataloader
-from utils.utils import labels_to_one_hot, is_distributed, distributed_rank
+from utils.utils import labels_to_one_hot, is_distributed, distributed_rank, distributed_world_size
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from log.logger import Logger, ProgressLogger
@@ -56,7 +56,8 @@ def train(config: dict, logger: Logger):
 
     train_dataloader = build_dataloader(
         dataset=train_dataset,
-        batch_size=config["BATCH_SIZE"],
+        batch_size=int(config["BATCH_SIZE"] / distributed_world_size()) if config["BATCH_SIZE_AVERAGE"]
+        else config["BATCH_SIZE"],
         sampler=train_sampler,
         num_workers=config["NUM_WORKERS"]
     )
