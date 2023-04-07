@@ -11,8 +11,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from utils.utils import is_distributed, distributed_rank, is_main_process
 
 
-
-
 def get_model(model):
     return model.module if is_distributed() else model
 
