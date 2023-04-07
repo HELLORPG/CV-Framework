@@ -52,6 +52,11 @@ def parse_option():
     # Distributed.
     parser.add_argument("--use-distributed", type=str, help="Whether use distributed mode.")
 
+    # Hyperparams.
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--weight-decay", type=float)
+    parser.add_argument("--lr", type=float)
+
     return parser.parse_args()
 
 

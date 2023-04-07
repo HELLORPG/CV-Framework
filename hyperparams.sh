@@ -1,0 +1,7 @@
+# Try different hyperparams:
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True --exp-name try_hyperparams --exp-group hyperparams --batch-size 256 --lr 0.0001
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True --exp-name try_hyperparams --exp-group hyperparams --batch-size 512 --lr 0.0001
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True --exp-name try_hyperparams --exp-group hyperparams --batch-size 128 --lr 0.0001
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True --exp-name try_hyperparams --exp-group hyperparams --batch-size 256 --lr 0.0004
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True --exp-name try_hyperparams --exp-group hyperparams --batch-size 256 --lr 0.0002
+python -m torch.distributed.run --nproc_per_node=2 main.py --mode train --outputs-dir ./outputs/multi_gpu/train/ --use-distributed True --exp-name try_hyperparams --exp-group hyperparams --batch-size 256 --lr 0.00005
