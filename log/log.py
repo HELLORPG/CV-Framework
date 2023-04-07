@@ -9,6 +9,71 @@ from utils.utils import is_distributed, distributed_world_size
 from collections import deque, defaultdict
 
 
+class Metrics:
+    def __init__(self):
+        self.metrics = defaultdict(Value)
+
+    def update(self, name: str, value: float):
+        if isinstance(value, torch.Tensor):
+            value = value.item()
+        self.metrics[name].update(value)
+        return
+
+    def sync(self):
+        for name, value in self.metrics.items():
+            value.sync()
+        return
+
+    def __getitem__(self, item):
+        return self.metrics[item]
+
+    def __getattr__(self, item):
+        return self.metrics[item]
+
+    def __str__(self):
+        s = str()
+        for name, value in self.metrics.items():
+            s += f"{name} = {value.average:.4f} ({value.global_average:.4f}); "
+        return s
+
+    def fmt(self, fmt):
+        s = str()
+        for name, value in self.metrics.items():
+            s += f"{name} = {value.fmt(fmt=fmt)}; "
+        return s
+
+
+class TPS:
+    """
+    Time Per Step.
+    """
+    def __init__(self, windows_size: int = 50):
+        self.tps_deque = deque(maxlen=windows_size)     # time per step.
+
+    def update(self, tps: float):
+        self.tps_deque.append(tps)
+
+    @property
+    def average(self):
+        tps_list = list(self.tps_deque)
+        return sum(tps_list) / len(tps_list)
+
+    def eta(self, total_steps: int, current_steps: int):
+        return self.average * (total_steps - current_steps)
+
+    @classmethod
+    def timestamp(cls):
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+        return time.time()
+
+    @classmethod
+    def format(cls, seconds: float):
+        m, s = divmod(seconds, 60)
+        h, m = divmod(m, 60)
+        return f"{int(h)}:{int(m)}:{int(s)}"
+
+
 class Value:
     def __init__(self, window_size: int = 50):
         self.value_deque = deque(maxlen=window_size)
@@ -67,67 +132,3 @@ class Value:
             average=self.average,
             global_average=self.global_average
         )
-
-
-class Metrics:
-    def __init__(self):
-        self.metrics = defaultdict(Value)
-
-    def update(self, name: str, value: float):
-        if isinstance(value, torch.Tensor):
-            value = value.item()
-        self.metrics[name].update(value)
-        return
-
-    def sync(self):
-        for name, value in self.metrics.items():
-            value.sync()
-        return
-
-    def __getitem__(self, item):
-        return self.metrics[item]
-
-    def __getattr__(self, item):
-        return self.metrics[item]
-
-    def __str__(self):
-        s = str()
-        for name, value in self.metrics.items():
-            s += f"{name} = {value.average:.4f} ({value.global_average:.4f}); "
-        return s
-
-    def fmt(self, fmt):
-        s = str()
-        for name, value in self.metrics.items():
-            s += f"{name} = {value.fmt(fmt=fmt)}; "
-        return s
-
-class TPS:
-    """
-    Time Per Step.
-    """
-    def __init__(self, windows_size: int = 50):
-        self.tps_deque = deque(maxlen=windows_size)     # time per step.
-
-    def update(self, tps: float):
-        self.tps_deque.append(tps)
-
-    @property
-    def average(self):
-        tps_list = list(self.tps_deque)
-        return sum(tps_list) / len(tps_list)
-
-    def eta(self, total_steps: int, current_steps: int):
-        return self.average * (total_steps - current_steps)
-
-    @classmethod
-    def timestamp(cls):
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
-        return time.time()
-
-    @classmethod
-    def format(cls, seconds: float):
-        m, s = divmod(seconds, 60)
-        h, m = divmod(m, 60)
-        return f"{int(h)}:{int(m)}:{int(s)}"
