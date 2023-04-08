@@ -8,7 +8,7 @@ This project builds a simple vision model training framework implemented by [PyT
 - [x] Logging to file / tensorboard / wandb
 - [x] Distributed training and evaluation
 
-下载 [MNIST](https://github.com/HELLORPG/CV-Framework/releases/download/v1.0.0/MNIST.zip) 数据集之后无需解压，默认放在`./dataset/MNIST/`路径下，运行`run.sh`中的所有语句就可以进行功能测试。
+In this project, the digit classification on MNIST is used as a toy task. You should download [MNIST dataset](https://github.com/HELLORPG/CV-Framework/releases/download/v1.0.0/MNIST.zip) and put it in the `./datasets/MNIST/` folder without decompression.
 
 
 ## Primary Components
