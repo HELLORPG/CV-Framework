@@ -1,11 +1,12 @@
 # README.md
 
-本项目考虑构建一个基于 PyTorch 实现的视觉学习框架，目前主要包括了如下功能：
-- [x] 模型训练
-- [x] 模型评估
-- [x] 日志输出
-- [x] 进度条展示
-- [x] 分布式模式
+
+This project builds a simple vision model training framework implemented by [PyTorch](https://pytorch.org/), has the following features:
+
+- [x] Model training
+- [x] Model evaluation
+- [x] Logging to file / tensorboard / wandb
+- [x] Distributed training and evaluation
 
 下载 [MNIST](https://github.com/HELLORPG/CV-Framework/releases/download/v1.0.0/MNIST.zip) 数据集之后无需解压，默认放在`./dataset/MNIST/`路径下，运行`run.sh`中的所有语句就可以进行功能测试。
 
