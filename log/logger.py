@@ -90,6 +90,7 @@ class Logger:
                     dir=wandb_dir,
                     project=config["PROJECT_NAME"],
                     group=config["EXP_GROUP"],
+                    entity=config["EXP_OWNER"],
                     name=exp_name,
                     config=config,
                 )   # for more details, see https://docs.wandb.ai/ref/python/init

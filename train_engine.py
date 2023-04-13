@@ -177,7 +177,7 @@ def train_one_epoch(config: dict, model: nn.Module, logger: Logger,
     else:
         device = torch.device(config["DEVICE"])
 
-    # process_log = ProgressLogger(total_len=len(dataloader), prompt="Train %d Epoch" % (epoch + 1))
+    optimizer.zero_grad()   # init optim
 
     for i, batch in enumerate(dataloader):
         iter_start_timestamp = TPS.timestamp()
@@ -187,15 +187,17 @@ def train_one_epoch(config: dict, model: nn.Module, logger: Logger,
 
         loss = loss_function(outputs, labels)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
         metrics.train_loss.update(loss.item())
         metrics["train_acc"].update(
             sum(torch.argmax(labels, dim=1).eq(torch.argmax(outputs, dim=1))).item() / len(labels)
         )
         metrics.sync()
+
+        loss /= config["ACCUMULATE_STEPS"]
+        if (i + 1) % config["ACCUMULATE_STEPS"] == 0:
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
 
         iter_end_timestamp = TPS.timestamp()
         tps.update(iter_end_timestamp - iter_start_timestamp)
