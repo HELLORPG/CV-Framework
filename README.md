@@ -98,15 +98,15 @@ In package [utils](./utils), there are some general methods that are not fall in
 [//]: # (```)
 
 
-## Config file
+## Runtime setting
 
-整个项目的配置信息（例如模型具体层数、训练方式、各类超参数等）都放在文件夹 [configs](./configs) 中。
-其中配置信息以`.yaml`文件的形式存储，样例如下：
+All runtime settings are recorded in a `.yaml` file like [configs/resnet18_mnist.yaml](./configs/resnet18_mnist.yaml).
+In addition, some settings can be set by script parameters at runtime, such as `--batch-size`, `--lr`, and so on.
+
 ```yaml
 MODE: # "train" or "eval", for the main.py script.
 DEVICE: cuda
 AVAILABLE_GPUS: 0,1,2,3,4,5,6,7
-#GPUS: [0, 1, 2, 3, 4, 5, 6, 7]
 
 # DATA:
 DATASET: MNIST
