@@ -45,6 +45,7 @@ def parse_option():
     parser.add_argument("--outputs-dir", type=str, help="Outputs dir.")
     parser.add_argument("--exp-name", type=str, help="Exp name.")
     parser.add_argument("--exp-group", type=str, help="Exp group, for wandb.")
+    parser.add_argument("--use-wandb", type=str, help="Whether use wandb.")
 
     # About train.
     parser.add_argument("--resume-model", type=str, help="Resume training model path.")
