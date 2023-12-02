@@ -27,6 +27,7 @@ class Metrics:
     def __getitem__(self, item):
         return self.metrics[item]
 
+    # Not suitable for PyCharm debugging process, carefully use:
     def __getattr__(self, item):
         return self.metrics[item]
 
@@ -105,6 +106,15 @@ class Value:
             self.total_value_sync = self.total_value
             self.total_count_sync = self.total_count
         return
+
+    def clear(self):
+        self.value_deque.clear()
+        self.total_value = 0.0
+        self.total_count = 0
+
+        self.value_sync: None | torch.Tensor = None
+        self.total_value_sync = None
+        self.total_count_sync = None
 
     def _check_sync(self):
         if self.value_sync is None:
