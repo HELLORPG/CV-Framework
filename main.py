@@ -7,7 +7,7 @@ import torch.distributed
 
 from utils.utils import yaml_to_dict, is_main_process, distributed_rank, set_seed
 from log.logger import Logger, parser_to_dict
-from configs.utils import update_config
+from configs.utils import update_config, load_super_config
 from train_engine import train
 from eval_engine import evaluate
 # from engine import train, evaluate
@@ -31,6 +31,7 @@ def parse_option():
     # Config file.
     parser.add_argument("--config-path", type=str, help="Config file path.",
                         default="./configs/resnet18_mnist.yaml")
+    parser.add_argument("--super-config-path", type=str)
 
     # About system.
     parser.add_argument("--device", type=str, help="Device.")
@@ -104,6 +105,12 @@ def main(config: dict):
 if __name__ == '__main__':
     opt = parse_option()                    # runtime options, a subset of .yaml config file (dict).
     cfg = yaml_to_dict(opt.config_path)     # configs from .yaml file, path is set by runtime options.
+
+    # Loading super config:
+    if opt.super_config_path is not None:
+        cfg = load_super_config(cfg, opt.super_config_path)
+    else:
+        cfg = load_super_config(cfg, cfg["SUPER_CONFIG_PATH"])
 
     # Then, update configs by runtime options, using the different runtime setting.
     main(config=update_config(config=cfg, option=opt))

@@ -4,6 +4,7 @@
 
 
 import argparse
+from utils.utils import yaml_to_dict
 
 
 def update_config_with_kv(config: dict, k: str, v) -> [bool, dict]:
@@ -95,4 +96,11 @@ def is_unique(config: dict, keys_set: set = None) -> [bool, set]:
     return True, keys_set
 
 
-
+def load_super_config(config: dict, super_config_path: str | None):
+    if super_config_path is None:
+        return config
+    else:
+        super_config = yaml_to_dict(super_config_path)
+        super_config = load_super_config(super_config, super_config["SUPER_CONFIG_PATH"])
+        super_config.update(config)
+        return super_config

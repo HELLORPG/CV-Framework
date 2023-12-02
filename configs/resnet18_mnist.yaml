@@ -5,6 +5,8 @@
 # RULES:
 # The name of the key should be unique.
 
+SUPER_CONFIG_PATH:    # super (father) config path.
+
 MODE: # "train" or "eval", for the main.py script.
 DEVICE: cuda
 AVAILABLE_GPUS: 0,1,2,3,4,5,6,7
