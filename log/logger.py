@@ -101,8 +101,12 @@ class Logger:
         if self.is_activate:
             print(prompt, end="")
             for _ in config:
-                print(f"{_.lower()}:{config[_]}; ", end="")
+                print(f"{_.lower()}: {config[_]}; ", end="")
             print("")
+
+    def print(self, log: str):
+        if self.is_activate:
+            print(log)
 
     def save_config(self, config: dict, filename: str):
         if self.is_activate:
@@ -123,7 +127,7 @@ class Logger:
             self.save_log_to_file(log=log, filename=filename, mode=mode)
         return
 
-    def save_log_to_file(self, log: str, filename: str = "log.txt", mode: str = "w"):
+    def save_log_to_file(self, log: str, filename: str = "log.txt", mode: str = "a"):
         if self.is_activate:
             with open(os.path.join(self.logdir, filename), mode=mode) as f:
                 f.write(log)
